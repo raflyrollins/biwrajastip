@@ -1,0 +1,171 @@
+import { Link, router, usePage } from '@inertiajs/react';
+import {
+    LayoutDashboard,
+    LogOut,
+    Package,
+    Settings,
+    Truck,
+    UserCircle,
+    Users,
+    Ship,
+    BarChart3,
+    MapPin,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
+
+import ThemeToggle from '@/components/ThemeToggle';
+import type { Auth } from '@/types';
+import type { UserRole } from '@/types';
+
+interface NavItem {
+    label: string;
+    icon: LucideIcon;
+    href: string;
+}
+
+const roleNav: Record<UserRole, NavItem[]> = {
+    customer: [
+        { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
+        { label: 'Paket Saya', icon: Package, href: '/dashboard/packages' },
+        { label: 'Kirim Paket', icon: Truck, href: '/dashboard/send' },
+        { label: 'Pengaturan', icon: Settings, href: '/dashboard/settings' },
+    ],
+    staff_surabaya: [
+        { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
+        { label: 'Terima Paket', icon: Package, href: '/dashboard/receive' },
+        { label: 'Bagging', icon: Ship, href: '/dashboard/bagging' },
+        { label: 'Pengaturan', icon: Settings, href: '/dashboard/settings' },
+    ],
+    staff_ende: [
+        { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
+        { label: 'Sortir Paket', icon: Package, href: '/dashboard/sort' },
+        { label: 'Pengambilan', icon: UserCircle, href: '/dashboard/pickup' },
+        { label: 'Pengaturan', icon: Settings, href: '/dashboard/settings' },
+    ],
+    admin: [
+        { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
+        { label: 'Paket', icon: Package, href: '/dashboard/packages' },
+        { label: 'Batch', icon: Ship, href: '/dashboard/batches' },
+        { label: 'Zona & Tarif', icon: MapPin, href: '/dashboard/zones' },
+        { label: 'Pengguna', icon: Users, href: '/dashboard/users' },
+        { label: 'Laporan', icon: BarChart3, href: '/dashboard/reports' },
+        { label: 'Pengaturan', icon: Settings, href: '/dashboard/settings' },
+    ],
+    owner: [
+        { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
+        { label: 'Laporan', icon: BarChart3, href: '/dashboard/reports' },
+        { label: 'Pengguna', icon: Users, href: '/dashboard/users' },
+        { label: 'Pengaturan', icon: Settings, href: '/dashboard/settings' },
+    ],
+};
+
+interface DashboardLayoutProps {
+    children: ReactNode;
+    title?: string;
+}
+
+export default function DashboardLayout({
+    children,
+    title,
+}: DashboardLayoutProps) {
+    const { auth } = usePage().props as { auth: Auth };
+    const user = auth.user;
+    const navItems = roleNav[user.role] ?? roleNav.customer;
+
+    return (
+        <div data-surface="dashboard" className="flex min-h-dvh">
+            {/* ── Sidebar ── */}
+            <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-[var(--border-default)] bg-[var(--neutral-primary-soft)] md:flex">
+                <div className="flex h-16 items-center border-b border-[var(--border-default)] px-6">
+                    <Link
+                        href="/"
+                        className="text-lg font-bold text-[var(--heading)] no-underline"
+                    >
+                        biwrajastip
+                    </Link>
+                </div>
+
+                <nav className="flex-1 overflow-y-auto p-3">
+                    <ul className="flex flex-col gap-1">
+                        {navItems.map((item) => (
+                            <li key={item.href}>
+                                <Link
+                                    href={item.href}
+                                    className="flex items-center gap-3 rounded-none px-4 py-2.5 text-sm font-medium text-[var(--body)] no-underline transition-colors duration-150 hover:bg-[var(--neutral-secondary-medium)] hover:text-[var(--heading)]"
+                                >
+                                    <item.icon size={18} />
+                                    {item.label}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+
+                <div className="border-t border-[var(--border-default)] p-4">
+                    <div className="flex items-center gap-3">
+                        <div className="flex size-9 items-center justify-center rounded-none bg-[var(--brand-softer)] text-sm font-bold text-[var(--fg-brand-strong)]">
+                            {user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-[var(--heading)]">
+                                {user.name}
+                            </p>
+                            <p className="truncate text-xs text-[var(--body-subtle)]">
+                                {user.email}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            {/* ── Mobile top bar ── */}
+            <header className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-[var(--border-default)] bg-[var(--neutral-primary-soft)] px-4 md:hidden">
+                <Link
+                    href="/"
+                    className="text-base font-bold text-[var(--heading)] no-underline"
+                >
+                    biwrajastip
+                </Link>
+
+                <div className="flex items-center gap-2">
+                    <ThemeToggle />
+                    <button
+                        type="button"
+                        onClick={() => router.post('/logout')}
+                        className="flex cursor-pointer items-center gap-1.5 border-none bg-transparent p-2 text-sm text-[var(--body)] transition-colors hover:text-[var(--heading)]"
+                        aria-label="Keluar"
+                    >
+                        <LogOut size={18} />
+                    </button>
+                </div>
+            </header>
+
+            {/* ── Main content ── */}
+            <div className="flex flex-1 flex-col md:ml-64">
+                {/* ── Top bar (desktop) ── */}
+                <header className="hidden h-16 items-center justify-between border-b border-[var(--border-default)] bg-[var(--neutral-primary-soft)] px-8 md:flex">
+                    <h1 className="text-xl font-bold text-[var(--heading)]">
+                        {title ?? 'Dashboard'}
+                    </h1>
+
+                    <div className="flex items-center gap-3">
+                        <ThemeToggle />
+                        <button
+                            type="button"
+                            onClick={() => router.post('/logout')}
+                            className="flex cursor-pointer items-center gap-2 border-none bg-[var(--brand)] px-4 py-2 text-sm font-medium text-[var(--on-brand)] transition-colors hover:bg-[var(--brand-strong)]"
+                        >
+                            <LogOut size={16} />
+                            Keluar
+                        </button>
+                    </div>
+                </header>
+
+                <main className="flex-1 bg-[var(--neutral-secondary-soft)]">
+                    {children}
+                </main>
+            </div>
+        </div>
+    );
+}

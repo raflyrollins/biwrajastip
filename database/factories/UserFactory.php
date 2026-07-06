@@ -27,10 +27,40 @@ class UserFactory extends Factory
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'phone' => fake()->phoneNumber(),
+            'role' => 'customer',
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
+    }
+
+    public function staffSurabaya(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'staff_surabaya',
+        ]);
+    }
+
+    public function staffEnde(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'staff_ende',
+        ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'admin',
+        ]);
+    }
+
+    public function owner(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'owner',
+        ]);
     }
 
     /**

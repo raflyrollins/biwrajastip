@@ -41,14 +41,25 @@ export default function Navbar() {
                 <div className="flex items-center gap-2">
                     <ThemeToggle />
                     {user ? (
-                        <Button
-                            variant="white"
-                            size="default"
-                            onClick={() => router.post('/logout')}
-                            className="text-sm"
-                        >
-                            Keluar
-                        </Button>
+                        <>
+                            <Link href="/dashboard">
+                                <Button
+                                    variant="white"
+                                    size="default"
+                                    className="text-sm"
+                                >
+                                    Dashboard
+                                </Button>
+                            </Link>
+                            <Button
+                                variant="white"
+                                size="default"
+                                onClick={() => router.post('/logout')}
+                                className="text-sm"
+                            >
+                                Keluar
+                            </Button>
+                        </>
                     ) : (
                         <Link href="/login">
                             <Button

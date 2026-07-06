@@ -79,6 +79,31 @@ Sections (semua `bg-[var(--brand)]`):
 - **HandleInertiaRequests** middleware — share `auth.user`
 - **AppServiceProvider** — CarbonImmutable, strict password (production)
 
+### 7. Role System & Dashboard
+
+- **Migration:** `role` column (string, default 'customer') ditambahkan ke users table
+- **User model:** Constants `ROLE_CUSTOMER`, `ROLE_STAFF_SURABAYA`, `ROLE_STAFF_ENDE`, `ROLE_ADMIN`, `ROLE_OWNER` + convenience methods (`isCustomer()`, dll.)
+- **RoleMiddleware** (`app/Http/Middleware/RoleMiddleware.php`) — middleware `role:customer,admin` untuk proteksi route per-role, terdaftar sebagai alias di `bootstrap/app.php`
+- **DashboardController** — `index()` membaca `$user->role` dan me-render view Inertia yang sesuai
+- **Route:** `GET /dashboard` (auth) → dashboard sesuai role user
+
+### 8. Dashboard Pages (React/Inertia)
+
+| Role | Page | File |
+|------|------|------|
+| Customer | Dashboard customer | `dashboard/customer.tsx` |
+| Staff Surabaya | Panel staff Surabaya | `dashboard/staff-surabaya.tsx` |
+| Staff Ende | Panel staff Ende | `dashboard/staff-ende.tsx` |
+| Admin | Panel admin | `dashboard/admin.tsx` |
+| Owner | Panel owner | `dashboard/owner.tsx` |
+
+- **DashboardLayout** (`components/DashboardLayout.tsx`) — layout bersama dengan sidebar navigasi spesifik per-role, top bar, user info, theme toggle, logout
+- **Data surface:** `data-surface="dashboard"` diterapkan di root layout
+- **Styling:** compact headings (max 24-28px), token-based, zero border radius, background alternating neutral
+- **Auth type:** `UserRole` type ditambahkan, `role` field di `User`, `ROLE_LABELS` mapping
+- **UserFactory:** states `staffSurabaya()`, `staffEnde()`, `admin()`, `owner()` untuk seeding
+- **Navbar:** tombol "Dashboard" muncul untuk user yang sudah login
+
 ---
 
 ## Konvensi Penting
@@ -121,6 +146,7 @@ resources/
 │   ├── components/
 │   │   ├── Button.tsx                   # 5 variants, 2 sizes
 │   │   ├── Container.tsx                # Max-width wrapper
+│   │   ├── DashboardLayout.tsx          # Sidebar layout for dashboard pages
 │   │   ├── Navbar.tsx                   # Fixed nav, auth-aware
 │   │   ├── Footer.tsx                   # Brand bg footer
 │   │   ├── ThemeToggle.tsx              # Dark/light toggle
@@ -129,16 +155,25 @@ resources/
 │   ├── pages/
 │   │   ├── welcome.tsx                  # Landing page
 │   │   ├── auth/Auth.tsx                # Animated auth (login+register)
-│   │   └── check-shipping.tsx           # Cek ongkir page
+│   │   ├── check-shipping.tsx           # Cek ongkir page
+│   │   └── dashboard/
+│   │       ├── customer.tsx             # Customer dashboard
+│   │       ├── staff-surabaya.tsx       # Staff Surabaya panel
+│   │       ├── staff-ende.tsx           # Staff Ende panel
+│   │       ├── admin.tsx                # Admin panel
+│   │       └── owner.tsx                # Owner panel
 │   └── types/
-│       ├── auth.ts                      # User + Auth types
+│       ├── auth.ts                      # User + Auth types + UserRole
 │       ├── global.d.ts                  # Module augmentation
 │       └── index.ts                     # Re-export
-├── routes/web.php                       # Home, auth, check-shipping
+├── routes/web.php                       # Home, auth, check-shipping, dashboard
 ├── app/Http/Controllers/AuthController.php
-├── app/Models/User.php                  # +phone field
+├── app/Http/Controllers/DashboardController.php  # Role-based dashboard routing
+├── app/Http/Middleware/RoleMiddleware.php          # Role check middleware
+├── app/Models/User.php                  # +phone, +role field + constants
 └── database/migrations/
-    └── 2026_07_06_000001_add_phone_to_users_table.php
+    ├── 2026_07_06_000001_add_phone_to_users_table.php
+    └── 2026_07_07_000001_add_role_to_users_table.php
 ```
 
 ---
@@ -148,16 +183,17 @@ resources/
 - [ ] Database seeder untuk zona + tarif (ganti hardcode di check-shipping)
 - [ ] API endpoint untuk kalkulasi ongkir (saat ini client-side)
 - [ ] Landing page: social proof / testimonials section
-- [ ] Dashboard customer (setelah login)
+- [x] Dashboard customer (setelah login)
 - [ ] Form input paket (customer)
-- [ ] Dashboard staff Surabaya
-- [ ] Dashboard staff Ende
-- [ ] Dashboard admin
+- [x] Dashboard staff Surabaya
+- [x] Dashboard staff Ende
+- [x] Dashboard admin
+- [x] Dashboard owner
+- [x] Role-based middleware (customer, staff, admin, owner)
 - [ ] QR code generation untuk paket
 - [ ] Notifikasi (WA/email/in-app)
 - [ ] Upload foto barang
 - [ ] Integrasi payment gateway
-- [ ] Role-based middleware (customer, staff, admin, owner)
 
 ---
 
