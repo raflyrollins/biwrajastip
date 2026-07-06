@@ -1,0 +1,201 @@
+@import 'tailwindcss';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+@theme {
+    --font-sans:
+        'Gabarito', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--neutral-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-default);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gray);
+}
+
+html.dark ::-webkit-scrollbar-track {
+    background: var(--neutral-primary);
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+    background: var(--neutral-quaternary);
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+    background: var(--gray);
+}
+
+:root {
+    /* ── Neutral Backgrounds ── */
+    --neutral-primary-soft: #ffffff;
+    --neutral-primary: #ffffff;
+    --neutral-primary-medium: #ffffff;
+    --neutral-primary-strong: #ffffff;
+    --neutral-secondary-soft: #fafaff;
+    --neutral-secondary: #fafaff;
+    --neutral-secondary-medium: #fafaff;
+    --neutral-secondary-strong: #fafaff;
+    --neutral-tertiary-soft: #f2f0fa;
+    --neutral-tertiary: #f2f0fa;
+    --neutral-tertiary-medium: #f2f0fa;
+    --neutral-quaternary: #e5e1f5;
+    --quaternary-medium: #e5e1f5;
+    --gray: #d0cce3;
+
+    /* ── Brand Backgrounds ── */
+    --brand-softer: #f0ebff;
+    --brand-soft: #ddd4ff;
+    --brand: #6733ff;
+    --brand-medium: #c4b0ff;
+    --brand-strong: #5229cc;
+
+    /* ── Status Backgrounds ── */
+    --success-soft: #e6fff5;
+    --success: #00cc88;
+    --success-medium: #b8ffe0;
+    --success-strong: #00a86b;
+    --danger-soft: #fff0f0;
+    --danger: #ec4747;
+    --danger-medium: #ffdada;
+    --danger-strong: #d43030;
+    --warning-soft: #fff5eb;
+    --warning: #ff8c42;
+    --warning-medium: #ffe0c4;
+    --warning-strong: #e86b14;
+
+    /* ── Utility ── */
+    --dark: #1a1a3e;
+    --dark-strong: #0f0f2e;
+    --disabled: #f2f0fa;
+
+    /* ── Text Colors ── */
+    --white: #ffffff;
+    --black: #0f0f2e;
+    --heading: #0f0f2e;
+    --body: #4a4566;
+    --body-subtle: #5a5470;
+    --on-brand: #ffffff;
+    --on-brand-muted: #f0ebff;
+    --fg-brand-subtle: #c4b0ff;
+    --fg-brand: #6733ff;
+    --fg-brand-strong: #5229cc;
+    --fg-success: #00a86b;
+    --fg-success-strong: #004f3b;
+    --fg-danger: #ec4747;
+    --fg-danger-strong: #d43030;
+    --fg-warning-subtle: #ff8c42;
+    --fg-warning: #cc5500;
+    --fg-disabled: #a8a3c0;
+
+    /* ── Border Colors ── */
+    --border-buffer: #ffffff;
+    --border-buffer-medium: #ffffff;
+    --border-buffer-strong: #ffffff;
+    --border-muted: #fafaff;
+    --border-light-subtle: #f2f0fa;
+    --border-light: #f2f0fa;
+    --border-light-medium: #f2f0fa;
+    --border-default-subtle: #e5e1f5;
+    --border-default: #e5e1f5;
+    --border-default-medium: #e5e1f5;
+    --border-default-strong: #e5e1f5;
+    --border-success-subtle: #80ffcc;
+    --border-success: #00a86b;
+    --border-danger-subtle: #ffb8b8;
+    --border-danger: #ec4747;
+    --border-warning-subtle: #ffd4a8;
+    --border-warning: #ff8c42;
+    --border-brand-subtle: #c4b0ff;
+    --border-brand-light: #7c4dff;
+    --border-brand: #6733ff;
+    --border-dark-subtle: #1a1a3e;
+}
+
+html.dark {
+    --neutral-primary-soft: #0f1024;
+    --neutral-primary: #08091a;
+    --neutral-primary-medium: #181a33;
+    --neutral-primary-strong: #262845;
+    --neutral-secondary-soft: #0f1024;
+    --neutral-secondary: #08091a;
+    --neutral-secondary-medium: #181a33;
+    --neutral-secondary-strong: #262845;
+    --neutral-tertiary-soft: #0f1024;
+    --neutral-tertiary: #181a33;
+    --neutral-tertiary-medium: #262845;
+    --neutral-quaternary: #353859;
+    --quaternary-medium: #353859;
+    --gray: #353859;
+
+    --brand-softer: #1a0d4d;
+    --brand-soft: #2d1a80;
+    --brand: #7c4dff;
+    --brand-medium: #2d1a80;
+    --brand-strong: #6733ff;
+
+    --success-soft: #002e22;
+    --success-medium: #004f3b;
+    --danger-soft: #4d0a0a;
+    --danger-medium: #6b1a1a;
+    --warning-soft: #7c2d12;
+    --warning-medium: #7c2d12;
+
+    --dark: #1a1a3e;
+    --dark-strong: #2a2a55;
+    --disabled: #181a33;
+
+    --white: #ffffff;
+    --black: #0f0f2e;
+    --heading: #ffffff;
+    --body: #a8a3c0;
+    --body-subtle: #a8a3c0;
+    --on-brand: #ffffff;
+    --on-brand-muted: #f0ebff;
+    --fg-brand-subtle: #2d1a80;
+    --fg-brand: #a78bff;
+    --fg-brand-strong: #c4b0ff;
+    --fg-success: #004f3b;
+    --fg-success-strong: #00cc88;
+    --fg-danger: #ff6b6b;
+    --fg-danger-strong: #ff8f8f;
+    --fg-warning: #ffd166;
+    --fg-disabled: #5a5575;
+
+    --border-buffer: #08091a;
+    --border-buffer-medium: #181a33;
+    --border-buffer-strong: #262845;
+    --border-muted: #0f1024;
+    --border-light-subtle: #0f1024;
+    --border-light: #181a33;
+    --border-light-medium: #262845;
+    --border-default-subtle: #0f1024;
+    --border-default: #181a33;
+    --border-default-medium: #262845;
+    --border-default-strong: #353859;
+    --border-success-subtle: #004f3b;
+    --border-success: #004f3b;
+    --border-danger-subtle: #6b1a1a;
+    --border-danger: #ec4747;
+    --border-warning-subtle: #7c2d12;
+    --border-warning: #ff8c42;
+    --border-brand-subtle: #2d1a80;
+    --border-brand-light: #7c4dff;
+    --border-brand: #a78bff;
+    --border-dark-subtle: #2a2a55;
+}
