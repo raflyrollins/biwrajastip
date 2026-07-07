@@ -185,9 +185,9 @@ export default function Auth({ mode: initialMode }: AuthProps) {
                                                 Kirim Barang ke Ende
                                             </h3>
                                             <p className="mt-2 text-sm text-white/70">
-                                                Daftar sekarang dan mulai
-                                                kirim barang dari Jawa ke Ende
-                                                dengan mudah.
+                                                Daftar sekarang dan mulai kirim
+                                                barang dari Jawa ke Ende dengan
+                                                mudah.
                                             </p>
                                         </div>
                                     </div>

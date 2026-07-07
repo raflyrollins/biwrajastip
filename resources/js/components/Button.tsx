@@ -10,7 +10,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-    primary: 'bg-[var(--brand)] text-[var(--on-brand)] hover:bg-[var(--brand-strong)]',
+    primary:
+        'bg-[var(--brand)] text-[var(--on-brand)] hover:bg-[var(--brand-strong)]',
     secondary: 'bg-[var(--dark)] text-white hover:bg-[var(--dark-strong)]',
     outline:
         'bg-transparent text-[var(--heading)] border border-[var(--border-default)] hover:bg-[var(--neutral-tertiary)]',

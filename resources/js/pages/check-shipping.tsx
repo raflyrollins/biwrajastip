@@ -153,16 +153,9 @@ export default function CheckShipping() {
                                             onInput={(e) => {
                                                 const target =
                                                     e.target as HTMLInputElement;
-                                                target.value =
-                                                    target.value
-                                                        .replace(
-                                                            /[^0-9.]/g,
-                                                            '',
-                                                        )
-                                                        .replace(
-                                                            /(\..*)\./g,
-                                                            '$1',
-                                                        );
+                                                target.value = target.value
+                                                    .replace(/[^0-9.]/g, '')
+                                                    .replace(/(\..*)\./g, '$1');
                                             }}
                                             className="block w-full border border-[var(--border-default)] bg-[var(--neutral-tertiary)] px-4 py-3 text-sm text-[var(--heading)] placeholder-[var(--body-subtle)] transition-all duration-200 focus:border-[var(--brand)] focus:ring-1 focus:ring-[var(--brand)] focus:outline-none"
                                             placeholder="Contoh: 5"
@@ -188,7 +181,9 @@ export default function CheckShipping() {
                                                     inputMode="numeric"
                                                     value={length}
                                                     onChange={(e) =>
-                                                        setLength(e.target.value)
+                                                        setLength(
+                                                            e.target.value,
+                                                        )
                                                     }
                                                     onInput={(e) => {
                                                         const target =
@@ -244,7 +239,9 @@ export default function CheckShipping() {
                                                     inputMode="numeric"
                                                     value={height}
                                                     onChange={(e) =>
-                                                        setHeight(e.target.value)
+                                                        setHeight(
+                                                            e.target.value,
+                                                        )
                                                     }
                                                     onInput={(e) => {
                                                         const target =
@@ -340,9 +337,9 @@ export default function CheckShipping() {
                                                 className="mt-0.5 shrink-0 text-[var(--brand-strong)]"
                                             />
                                             <p className="text-sm leading-[1.6] text-[var(--body)]">
-                                                Berat final dihitung dari
-                                                berat terbesar antara berat
-                                                aktual dan berat volumetrik.
+                                                Berat final dihitung dari berat
+                                                terbesar antara berat aktual dan
+                                                berat volumetrik.
                                             </p>
                                         </div>
 
@@ -382,9 +379,14 @@ export default function CheckShipping() {
                                         <div className="flex flex-col gap-3 border-t border-[var(--border-default)] pt-4">
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-[var(--body-subtle)]">
-                                                    Ongkir ({TARIFF_PER_KG.toLocaleString('id-ID')}{' '}
+                                                    Ongkir (
+                                                    {TARIFF_PER_KG.toLocaleString(
+                                                        'id-ID',
+                                                    )}{' '}
                                                     /kg ×{' '}
-                                                    {result.finalWeight.toFixed(2)}{' '}
+                                                    {result.finalWeight.toFixed(
+                                                        2,
+                                                    )}{' '}
                                                     kg)
                                                 </span>
                                                 <span className="font-medium text-[var(--heading)]">

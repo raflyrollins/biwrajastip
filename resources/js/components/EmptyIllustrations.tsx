@@ -1,0 +1,705 @@
+interface IllustrationProps {
+    className?: string;
+}
+
+export function PackageEmpty({ className }: IllustrationProps) {
+    return (
+        <svg
+            viewBox="0 0 200 160"
+            fill="none"
+            className={className}
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <rect
+                x="50"
+                y="30"
+                width="100"
+                height="90"
+                rx="4"
+                fill="var(--brand-softer)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+                strokeDasharray="6 4"
+            />
+            <path
+                d="M50 50 L100 30 L150 50"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+                fill="none"
+            />
+            <line
+                x1="100"
+                y1="30"
+                x2="100"
+                y2="120"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="1.5"
+                strokeDasharray="4 3"
+            />
+            <line
+                x1="50"
+                y1="75"
+                x2="150"
+                y2="75"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="1.5"
+                strokeDasharray="4 3"
+            />
+            <rect
+                x="72"
+                y="130"
+                width="56"
+                height="8"
+                rx="2"
+                fill="var(--brand-softer)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="1.5"
+            />
+            <line
+                x1="82"
+                y1="134"
+                x2="118"
+                y2="134"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="1.5"
+            />
+            <circle
+                cx="165"
+                cy="45"
+                r="8"
+                fill="var(--warning-soft)"
+                stroke="var(--fg-warning)"
+                strokeWidth="1.5"
+            />
+            <text
+                x="165"
+                y="49"
+                textAnchor="middle"
+                fontSize="11"
+                fontWeight="bold"
+                fill="var(--fg-warning)"
+            >
+                ?
+            </text>
+            <circle
+                cx="35"
+                cy="105"
+                r="6"
+                fill="var(--success-soft)"
+                stroke="var(--fg-success-strong)"
+                strokeWidth="1.5"
+            />
+            <line
+                x1="35"
+                y1="99"
+                x2="35"
+                y2="85"
+                stroke="var(--fg-success-strong)"
+                strokeWidth="1.5"
+            />
+            <line
+                x1="29"
+                y1="105"
+                x2="17"
+                y2="105"
+                stroke="var(--fg-success-strong)"
+                strokeWidth="1.5"
+            />
+        </svg>
+    );
+}
+
+export function BatchEmpty({ className }: IllustrationProps) {
+    return (
+        <svg
+            viewBox="0 0 200 160"
+            fill="none"
+            className={className}
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <rect
+                x="20"
+                y="70"
+                width="160"
+                height="50"
+                rx="4"
+                fill="var(--brand-softer)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+            />
+            <path
+                d="M40 70 L40 55 Q40 45 50 45 L70 45"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+                fill="none"
+            />
+            <path
+                d="M160 70 L160 55 Q160 45 150 45 L130 45"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+                fill="none"
+            />
+            <circle
+                cx="50"
+                cy="95"
+                r="8"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+                fill="var(--neutral-primary-soft)"
+            />
+            <circle
+                cx="150"
+                cy="95"
+                r="8"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+                fill="var(--neutral-primary-soft)"
+            />
+            <line
+                x1="50"
+                y1="103"
+                x2="50"
+                y2="120"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+            />
+            <line
+                x1="150"
+                y1="103"
+                x2="150"
+                y2="120"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+            />
+            <rect
+                x="55"
+                y="120"
+                width="90"
+                height="4"
+                rx="2"
+                fill="var(--fg-brand-strong)"
+            />
+            <rect
+                x="65"
+                y="88"
+                width="20"
+                height="14"
+                rx="2"
+                fill="var(--warning-soft)"
+                stroke="var(--fg-warning)"
+                strokeWidth="1.5"
+            />
+            <rect
+                x="90"
+                y="88"
+                width="20"
+                height="14"
+                rx="2"
+                fill="var(--success-soft)"
+                stroke="var(--fg-success-strong)"
+                strokeWidth="1.5"
+            />
+            <rect
+                x="115"
+                y="88"
+                width="20"
+                height="14"
+                rx="2"
+                fill="var(--brand-softer)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="1.5"
+            />
+            <path
+                d="M85 35 L100 25 L115 35"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+                fill="none"
+            />
+            <line
+                x1="100"
+                y1="25"
+                x2="100"
+                y2="45"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+            />
+        </svg>
+    );
+}
+
+export function ZoneEmpty({ className }: IllustrationProps) {
+    return (
+        <svg
+            viewBox="0 0 200 160"
+            fill="none"
+            className={className}
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <ellipse
+                cx="100"
+                cy="130"
+                rx="80"
+                ry="15"
+                fill="var(--brand-softer)"
+                opacity="0.5"
+            />
+            <path
+                d="M30 120 Q40 60 80 50 Q100 45 110 60 Q125 80 140 55 Q160 35 180 80 Q190 100 180 120 Z"
+                fill="var(--success-soft)"
+                stroke="var(--fg-success-strong)"
+                strokeWidth="2"
+            />
+            <circle
+                cx="90"
+                cy="70"
+                r="10"
+                fill="var(--warning-soft)"
+                stroke="var(--fg-warning)"
+                strokeWidth="2"
+            />
+            <line
+                x1="90"
+                y1="80"
+                x2="90"
+                y2="110"
+                stroke="var(--fg-warning)"
+                strokeWidth="2"
+            />
+            <circle cx="90" cy="110" r="4" fill="var(--fg-warning)" />
+            <circle
+                cx="130"
+                cy="60"
+                r="6"
+                fill="var(--brand-softer)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="1.5"
+            />
+            <circle cx="130" cy="60" r="2" fill="var(--fg-brand-strong)" />
+            <line
+                x1="130"
+                y1="66"
+                x2="130"
+                y2="110"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="1.5"
+                strokeDasharray="3 3"
+            />
+            <circle cx="130" cy="110" r="3" fill="var(--fg-brand-strong)" />
+            <circle
+                cx="60"
+                cy="85"
+                r="5"
+                fill="var(--brand-softer)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="1.5"
+            />
+            <circle cx="60" cy="85" r="2" fill="var(--fg-brand-strong)" />
+            <line
+                x1="60"
+                y1="90"
+                x2="60"
+                y2="110"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="1.5"
+                strokeDasharray="3 3"
+            />
+            <circle cx="60" cy="110" r="3" fill="var(--fg-brand-strong)" />
+            <line
+                x1="80"
+                y1="108"
+                x2="135"
+                y2="108"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="1.5"
+                strokeDasharray="4 3"
+            />
+        </svg>
+    );
+}
+
+export function UserEmpty({ className }: IllustrationProps) {
+    return (
+        <svg
+            viewBox="0 0 200 160"
+            fill="none"
+            className={className}
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <circle
+                cx="70"
+                cy="60"
+                r="22"
+                fill="var(--brand-softer)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+            />
+            <circle
+                cx="70"
+                cy="52"
+                r="8"
+                fill="var(--neutral-primary-soft)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="1.5"
+            />
+            <path
+                d="M56 72 Q56 64 64 60 Q70 58 76 60 Q84 64 84 72"
+                fill="var(--neutral-primary-soft)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="1.5"
+            />
+            <path
+                d="M45 95 Q45 80 70 78 Q95 80 95 95"
+                fill="var(--brand-softer)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+            />
+            <circle
+                cx="135"
+                cy="60"
+                r="18"
+                fill="var(--success-soft)"
+                stroke="var(--fg-success-strong)"
+                strokeWidth="2"
+            />
+            <circle
+                cx="135"
+                cy="53"
+                r="6"
+                fill="var(--neutral-primary-soft)"
+                stroke="var(--fg-success-strong)"
+                strokeWidth="1.5"
+            />
+            <path
+                d="M125 70 Q125 63 131 61 Q135 60 139 61 Q145 63 145 70"
+                fill="var(--neutral-primary-soft)"
+                stroke="var(--fg-success-strong)"
+                strokeWidth="1.5"
+            />
+            <path
+                d="M118 88 Q118 78 135 76 Q152 78 152 88"
+                fill="var(--success-soft)"
+                stroke="var(--fg-success-strong)"
+                strokeWidth="2"
+            />
+            <rect
+                x="55"
+                y="115"
+                width="90"
+                height="6"
+                rx="3"
+                fill="var(--neutral-tertiary)"
+            />
+            <rect
+                x="65"
+                y="125"
+                width="70"
+                height="4"
+                rx="2"
+                fill="var(--neutral-tertiary)"
+                opacity="0.6"
+            />
+        </svg>
+    );
+}
+
+export function ReportEmpty({ className }: IllustrationProps) {
+    return (
+        <svg
+            viewBox="0 0 200 160"
+            fill="none"
+            className={className}
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <rect
+                x="25"
+                y="20"
+                width="150"
+                height="120"
+                rx="6"
+                fill="var(--neutral-primary-soft)"
+                stroke="var(--border-default)"
+                strokeWidth="2"
+            />
+            <line
+                x1="25"
+                y1="50"
+                x2="175"
+                y2="50"
+                stroke="var(--border-default)"
+                strokeWidth="1.5"
+            />
+            <rect
+                x="40"
+                y="60"
+                width="22"
+                height="65"
+                rx="2"
+                fill="var(--brand-softer)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="1.5"
+            />
+            <rect
+                x="70"
+                y="80"
+                width="22"
+                height="45"
+                rx="2"
+                fill="var(--warning-soft)"
+                stroke="var(--fg-warning)"
+                strokeWidth="1.5"
+            />
+            <rect
+                x="100"
+                y="45"
+                width="22"
+                height="80"
+                rx="2"
+                fill="var(--success-soft)"
+                stroke="var(--fg-success-strong)"
+                strokeWidth="1.5"
+            />
+            <rect
+                x="130"
+                y="70"
+                width="22"
+                height="55"
+                rx="2"
+                fill="var(--brand-softer)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="1.5"
+            />
+            <line
+                x1="35"
+                y1="125"
+                x2="165"
+                y2="125"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="1.5"
+            />
+            <path
+                d="M40 90 L60 75 L80 85 L100 55 L120 65 L145 45"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+            <circle
+                cx="100"
+                cy="32"
+                r="6"
+                fill="var(--warning-soft)"
+                stroke="var(--fg-warning)"
+                strokeWidth="1.5"
+            />
+            <line
+                x1="100"
+                y1="26"
+                x2="100"
+                y2="22"
+                stroke="var(--fg-warning)"
+                strokeWidth="1.5"
+            />
+            <line
+                x1="97"
+                y1="22"
+                x2="103"
+                y2="22"
+                stroke="var(--fg-warning)"
+                strokeWidth="1.5"
+            />
+        </svg>
+    );
+}
+
+export function ShipEmpty({ className }: IllustrationProps) {
+    return (
+        <svg
+            viewBox="0 0 200 160"
+            fill="none"
+            className={className}
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <path
+                d="M20 110 Q20 100 30 95 L100 80 L170 95 Q180 100 180 110 Z"
+                fill="var(--brand-softer)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+            />
+            <rect
+                x="80"
+                y="50"
+                width="40"
+                height="35"
+                rx="3"
+                fill="var(--neutral-primary-soft)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+            />
+            <rect
+                x="88"
+                y="58"
+                width="10"
+                height="8"
+                rx="1"
+                fill="var(--brand-softer)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="1"
+            />
+            <rect
+                x="102"
+                y="58"
+                width="10"
+                height="8"
+                rx="1"
+                fill="var(--brand-softer)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="1"
+            />
+            <line
+                x1="100"
+                y1="30"
+                x2="100"
+                y2="50"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+            />
+            <path
+                d="M100 30 L130 45 L100 50 Z"
+                fill="var(--warning-soft)"
+                stroke="var(--fg-warning)"
+                strokeWidth="1.5"
+            />
+            <path
+                d="M10 115 Q50 108 100 115 Q150 122 190 115"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+                fill="none"
+                opacity="0.5"
+            />
+            <path
+                d="M0 125 Q50 118 100 125 Q150 132 200 125"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+                fill="none"
+                opacity="0.3"
+            />
+            <circle
+                cx="40"
+                cy="140"
+                r="3"
+                fill="var(--brand-softer)"
+                opacity="0.5"
+            />
+            <circle
+                cx="60"
+                cy="138"
+                r="2"
+                fill="var(--brand-softer)"
+                opacity="0.4"
+            />
+            <circle
+                cx="140"
+                cy="139"
+                r="2.5"
+                fill="var(--brand-softer)"
+                opacity="0.45"
+            />
+            <circle
+                cx="160"
+                cy="141"
+                r="2"
+                fill="var(--brand-softer)"
+                opacity="0.35"
+            />
+        </svg>
+    );
+}
+
+export function SettingsEmpty({ className }: IllustrationProps) {
+    return (
+        <svg
+            viewBox="0 0 200 160"
+            fill="none"
+            className={className}
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <circle
+                cx="100"
+                cy="80"
+                r="30"
+                fill="var(--brand-softer)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+            />
+            <circle
+                cx="100"
+                cy="80"
+                r="15"
+                fill="var(--neutral-primary-soft)"
+                stroke="var(--fg-brand-strong)"
+                strokeWidth="2"
+            />
+            {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => {
+                const rad = (angle * Math.PI) / 180;
+                const x1 = 100 + 26 * Math.cos(rad);
+                const y1 = 80 + 26 * Math.sin(rad);
+                const x2 = 100 + 38 * Math.cos(rad);
+                const y2 = 80 + 38 * Math.sin(rad);
+
+                return (
+                    <line
+                        key={angle}
+                        x1={x1}
+                        y1={y1}
+                        x2={x2}
+                        y2={y2}
+                        stroke="var(--fg-brand-strong)"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                    />
+                );
+            })}
+            <circle
+                cx="50"
+                cy="40"
+                r="12"
+                fill="var(--success-soft)"
+                stroke="var(--fg-success-strong)"
+                strokeWidth="1.5"
+            />
+            <line
+                x1="46"
+                y1="40"
+                x2="54"
+                y2="40"
+                stroke="var(--fg-success-strong)"
+                strokeWidth="2"
+            />
+            <circle
+                cx="155"
+                cy="120"
+                r="10"
+                fill="var(--warning-soft)"
+                stroke="var(--fg-warning)"
+                strokeWidth="1.5"
+            />
+            <line
+                x1="155"
+                y1="114"
+                x2="155"
+                y2="126"
+                stroke="var(--fg-warning)"
+                strokeWidth="2"
+            />
+            <line
+                x1="149"
+                y1="120"
+                x2="161"
+                y2="120"
+                stroke="var(--fg-warning)"
+                strokeWidth="2"
+            />
+        </svg>
+    );
+}

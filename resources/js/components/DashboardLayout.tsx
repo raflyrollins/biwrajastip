@@ -4,10 +4,8 @@ import {
     LogOut,
     Package,
     Settings,
-    Truck,
-    UserCircle,
-    Users,
     Ship,
+    Users,
     BarChart3,
     MapPin,
 } from 'lucide-react';
@@ -27,37 +25,29 @@ interface NavItem {
 const roleNav: Record<UserRole, NavItem[]> = {
     customer: [
         { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-        { label: 'Paket Saya', icon: Package, href: '/dashboard/packages' },
-        { label: 'Kirim Paket', icon: Truck, href: '/dashboard/send' },
-        { label: 'Pengaturan', icon: Settings, href: '/dashboard/settings' },
+        { label: 'Paket Saya', icon: Package, href: '/customer/packages' },
     ],
     staff_surabaya: [
         { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-        { label: 'Terima Paket', icon: Package, href: '/dashboard/receive' },
-        { label: 'Bagging', icon: Ship, href: '/dashboard/bagging' },
-        { label: 'Pengaturan', icon: Settings, href: '/dashboard/settings' },
+        {
+            label: 'Terima Paket',
+            icon: Package,
+            href: '/staff/surabaya/packages',
+        },
     ],
     staff_ende: [
         { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-        { label: 'Sortir Paket', icon: Package, href: '/dashboard/sort' },
-        { label: 'Pengambilan', icon: UserCircle, href: '/dashboard/pickup' },
-        { label: 'Pengaturan', icon: Settings, href: '/dashboard/settings' },
     ],
     admin: [
         { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-        { label: 'Paket', icon: Package, href: '/dashboard/packages' },
-        { label: 'Batch', icon: Ship, href: '/dashboard/batches' },
-        { label: 'Zona & Tarif', icon: MapPin, href: '/dashboard/zones' },
-        { label: 'Pengguna', icon: Users, href: '/dashboard/users' },
-        { label: 'Laporan', icon: BarChart3, href: '/dashboard/reports' },
-        { label: 'Pengaturan', icon: Settings, href: '/dashboard/settings' },
+        { label: 'Semua Paket', icon: Package, href: '/admin/packages' },
+        { label: 'Batch Kirim', icon: Ship, href: '/admin/batches' },
+        { label: 'Zona & Tarif', icon: MapPin, href: '/admin/zones' },
+        { label: 'Pengguna', icon: Users, href: '/admin/users' },
+        { label: 'Laporan', icon: BarChart3, href: '/admin/reports' },
+        { label: 'Pengaturan', icon: Settings, href: '/admin/settings' },
     ],
-    owner: [
-        { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-        { label: 'Laporan', icon: BarChart3, href: '/dashboard/reports' },
-        { label: 'Pengguna', icon: Users, href: '/dashboard/users' },
-        { label: 'Pengaturan', icon: Settings, href: '/dashboard/settings' },
-    ],
+    owner: [{ label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' }],
 };
 
 interface DashboardLayoutProps {
@@ -71,7 +61,8 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
     const { auth } = usePage().props as { auth: Auth };
     const user = auth.user;
-    const navItems = roleNav[user.role] ?? roleNav.customer;
+    const role = user.role;
+    const navItems = roleNav[role] ?? [];
 
     return (
         <div data-surface="dashboard" className="flex min-h-dvh">
@@ -127,7 +118,6 @@ export default function DashboardLayout({
                 >
                     biwrajastip
                 </Link>
-
                 <div className="flex items-center gap-2">
                     <ThemeToggle />
                     <button
@@ -143,12 +133,10 @@ export default function DashboardLayout({
 
             {/* ── Main content ── */}
             <div className="flex flex-1 flex-col md:ml-64">
-                {/* ── Top bar (desktop) ── */}
                 <header className="hidden h-16 items-center justify-between border-b border-[var(--border-default)] bg-[var(--neutral-primary-soft)] px-8 md:flex">
                     <h1 className="text-xl font-bold text-[var(--heading)]">
                         {title ?? 'Dashboard'}
                     </h1>
-
                     <div className="flex items-center gap-3">
                         <ThemeToggle />
                         <button
@@ -161,7 +149,6 @@ export default function DashboardLayout({
                         </button>
                     </div>
                 </header>
-
                 <main className="flex-1 bg-[var(--neutral-secondary-soft)]">
                     {children}
                 </main>

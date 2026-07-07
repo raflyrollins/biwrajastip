@@ -1,9 +1,5 @@
 export type UserRole =
-    | 'customer'
-    | 'staff_surabaya'
-    | 'staff_ende'
-    | 'admin'
-    | 'owner';
+    'customer' | 'staff_surabaya' | 'staff_ende' | 'admin' | 'owner';
 
 export type User = {
     id: number;
@@ -19,6 +15,7 @@ export type User = {
 
 export type Auth = {
     user: User;
+    permissions: string[];
 };
 
 export const ROLE_LABELS: Record<UserRole, string> = {

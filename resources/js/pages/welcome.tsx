@@ -24,8 +24,7 @@ const STEP_IMAGES: Record<string, string> = {
     consolidate:
         'https://images.unsplash.com/photo-1553413077-190dd305871c?w=600&q=80',
     ship: 'https://images.unsplash.com/photo-1494412574643-ff11b0a5eb19?w=600&q=80',
-    pickup:
-        'https://images.unsplash.com/photo-1605733160314-4fc7dac4bb16?w=600&q=80',
+    pickup: 'https://images.unsplash.com/photo-1605733160314-4fc7dac4bb16?w=600&q=80',
 };
 
 const PEOPLE = [
@@ -66,8 +65,8 @@ export default function Welcome() {
                         <p className="mb-8 max-w-[65ch] text-lg leading-[1.7] text-[var(--on-brand-muted)] md:text-xl">
                             Layanan konsolidasi cargo laut dari Surabaya ke
                             Ende. Belanja barang dari Shopee atau toko online
-                            lainnya, kirim ke alamat collecting kami, dan
-                            kami konsolidasi pengiriman Anda.
+                            lainnya, kirim ke alamat collecting kami, dan kami
+                            konsolidasi pengiriman Anda.
                         </p>
                         <div className="flex flex-wrap gap-4">
                             <Button variant="white" size="large">
@@ -143,8 +142,8 @@ export default function Welcome() {
                             Kenapa Memilih BiwraJastip?
                         </h2>
                         <p className="mx-auto max-w-[65ch] text-base leading-[1.7] text-[var(--on-brand-muted)]">
-                            Kami hadir untuk membuat pengiriman barang dari
-                            Jawa ke Ende lebih mudah dan terjangkau.
+                            Kami hadir untuk membuat pengiriman barang dari Jawa
+                            ke Ende lebih mudah dan terjangkau.
                         </p>
                     </motion.div>
 
@@ -193,8 +192,8 @@ export default function Welcome() {
                             Alur Pengiriman
                         </h2>
                         <p className="mx-auto max-w-[65ch] text-base leading-[1.7] text-[var(--on-brand-muted)]">
-                            Proses pengiriman barang dari Surabaya ke Ende
-                            yang transparan dan terpercaya.
+                            Proses pengiriman barang dari Surabaya ke Ende yang
+                            transparan dan terpercaya.
                         </p>
                     </motion.div>
 
@@ -305,8 +304,8 @@ export default function Welcome() {
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: 0.1 }}
                     >
-                        Daftar sekarang dan mulai kirim barang Anda dari
-                        Jawa ke Ende dengan mudah.
+                        Daftar sekarang dan mulai kirim barang Anda dari Jawa ke
+                        Ende dengan mudah.
                     </motion.p>
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
