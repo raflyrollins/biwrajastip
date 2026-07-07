@@ -8,6 +8,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 
 interface PackageData {
     id: number;
+    uuid: string;
     tracking_code: string;
     recipient_name: string;
     sender_tracking_number: string | null;
@@ -41,7 +42,7 @@ export default function StaffSurabayaWeigh({ package: pkg }: WeighProps) {
             return 0;
         }
 
-        return Math.ceil((length * width * height) / 6000);
+        return Math.ceil((length * width * height) / 6000) * 1000;
     }, [length, width, height]);
 
     const finalWeight = Math.max(actualWeight, volumetricWeight);
@@ -66,7 +67,7 @@ export default function StaffSurabayaWeigh({ package: pkg }: WeighProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(`/staff/surabaya/packages/${pkg.id}/weigh`);
+        post(`/staff/surabaya/packages/${pkg.uuid}/weigh`);
     };
 
     return (

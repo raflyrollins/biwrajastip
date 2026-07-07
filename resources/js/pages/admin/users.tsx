@@ -26,6 +26,7 @@ const roleLabels: Record<string, string> = {
 
 interface User {
     id: number;
+    uuid: string;
     name: string;
     email: string;
     phone: string;
@@ -97,7 +98,7 @@ export default function AdminUsers({ users, filters }: AdminUsersProps) {
                 delete payload.password_confirmation;
             }
 
-            put(`/admin/users/${editing.id}`, {
+            put(`/admin/users/${editing.uuid}`, {
                 onSuccess: () => {
                     setShowForm(false);
                     setEditing(null);
@@ -116,7 +117,7 @@ export default function AdminUsers({ users, filters }: AdminUsersProps) {
 
     const handleDelete = (user: User) => {
         if (confirm(`Hapus pengguna "${user.name}"?`)) {
-            router.delete(`/admin/users/${user.id}`);
+            router.delete(`/admin/users/${user.uuid}`);
         }
     };
 

@@ -25,6 +25,7 @@ const statusColors: Record<string, string> = {
 
 interface PackageItem {
     id: number;
+    uuid: string;
     tracking_code: string;
     recipient_name: string;
     zone: { name: string } | null;
@@ -125,11 +126,11 @@ export default function CustomerPackages({ packages }: CustomerPackagesProps) {
                                             <tr
                                                 key={pkg.id}
                                                 className="cursor-pointer border-b border-[var(--border-default)] last:border-b-0 hover:bg-[var(--neutral-secondary-medium)]"
-                                                onClick={() =>
-                                                    router.get(
-                                                        `/customer/packages/${pkg.id}`,
-                                                    )
-                                                }
+                                                    onClick={() =>
+                                                        router.get(
+                                                            `/customer/packages/${pkg.uuid}`,
+                                                        )
+                                                    }
                                             >
                                                 <td className="px-6 py-4 font-mono text-xs font-medium text-[var(--heading)]">
                                                     {pkg.tracking_code}

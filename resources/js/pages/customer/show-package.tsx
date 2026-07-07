@@ -17,10 +17,20 @@ const statusColors: Record<string, string> = {
     collected: 'bg-[var(--brand-softer)] text-[var(--fg-brand-strong)]',
     waiting_for_payment: 'bg-[var(--warning-soft)] text-[var(--fg-warning)]',
     paid: 'bg-[var(--success-soft)] text-[var(--fg-success-strong)]',
+    bagging: 'bg-[var(--brand-softer)] text-[var(--fg-brand-strong)]',
+    berangkat_ke_pelabuhan:
+        'bg-[var(--brand-softer)] text-[var(--fg-brand-strong)]',
+    di_kapal: 'bg-[var(--brand-softer)] text-[var(--fg-brand-strong)]',
+    tiba_di_ende: 'bg-[var(--success-soft)] text-[var(--fg-success-strong)]',
+    disortir: 'bg-[var(--warning-soft)] text-[var(--fg-warning)]',
+    siap_diambil: 'bg-[var(--success-soft)] text-[var(--fg-success-strong)]',
+    dalam_pengantaran: 'bg-[var(--brand-softer)] text-[var(--fg-brand-strong)]',
+    selesai: 'bg-[var(--success-soft)] text-[var(--fg-success-strong)]',
 };
 
 interface PackageData {
     id: number;
+    uuid: string;
     tracking_code: string;
     recipient_name: string;
     recipient_phone: string | null;
@@ -41,6 +51,7 @@ interface PackageData {
     total_cost: number;
     status: string;
     status_label: string;
+    payment_proof: string | null;
     notes: string | null;
     created_at: string;
 }
@@ -54,6 +65,16 @@ export default function ShowPackage({ package: pkg }: ShowPackageProps) {
         pkg.weight_estimated && pkg.volumetric_estimated
             ? Math.max(pkg.weight_estimated, pkg.volumetric_estimated)
             : pkg.weight_estimated;
+
+    const estCost =
+        pkg.zone && estFinalWeight
+            ? Math.ceil(
+                  (pkg.zone.tarif_per_kg * estFinalWeight) / 1000 +
+                      pkg.zone.biaya_antar,
+              )
+            : 0;
+
+    const hasActual = pkg.shipping_cost > 0;
 
     return (
         <>
@@ -376,21 +397,92 @@ export default function ShowPackage({ package: pkg }: ShowPackageProps) {
                                         </div>
                                     </div>
                                     <div className="border-t border-[var(--border-default)] pt-4">
+                                        <p className="mb-2 text-xs font-medium text-[var(--body-subtle)]">
+                                            Perhitungan Estimasi
+                                        </p>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-[var(--body-subtle)]">
-                                                Estimasi Ongkir
+                                                Berat Estimasi
                                             </span>
                                             <span className="font-medium text-[var(--heading)]">
+                                                {pkg.weight_estimated
+                                                    ? `${pkg.weight_estimated.toLocaleString('id-ID')}g`
+                                                    : '-'}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-[var(--body-subtle)]">
+                                                Berat Volumetrik
+                                            </span>
+                                            <span className="font-medium text-[var(--heading)]">
+                                                {pkg.volumetric_estimated
+                                                    ? `${pkg.volumetric_estimated.toLocaleString('id-ID')}g`
+                                                    : '-'}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="font-medium text-[var(--heading)]">
+                                                Berat Final Estimasi
+                                            </span>
+                                            <span className="font-bold text-[var(--heading)]">
+                                                {estFinalWeight
+                                                    ? `${estFinalWeight.toLocaleString('id-ID')}g`
+                                                    : '-'}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-[var(--body-subtle)]">
+                                            max(berat, volumetrik)
+                                        </p>
+                                        <div className="mt-3 flex justify-between">
+                                            <span className="text-sm font-medium text-[var(--heading)]">
+                                                Estimasi Ongkir
+                                            </span>
+                                            <span className="text-lg font-bold text-[var(--fg-brand-strong)]">
                                                 Rp
-                                                {pkg.shipping_cost.toLocaleString(
+                                                {estCost.toLocaleString(
                                                     'id-ID',
                                                 )}
                                             </span>
                                         </div>
+                                        {hasActual && (
+                                            <div className="mt-2 border-t border-[var(--border-default)] pt-2">
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-[var(--body-subtle)]">
+                                                        Ongkir Aktual
+                                                    </span>
+                                                    <span className="font-medium text-[var(--heading)]">
+                                                        Rp
+                                                        {pkg.shipping_cost.toLocaleString(
+                                                            'id-ID',
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
                                         <p className="mt-1 text-xs text-[var(--body-subtle)]">
                                             Harga final setelah penimbangan.
                                         </p>
                                     </div>
+                                    {pkg.status ===
+                                        'waiting_for_payment' && (
+                                        <button
+                                            onClick={() =>
+                                                router.get(
+                                                    `/customer/packages/${pkg.uuid}/pay`,
+                                                )
+                                            }
+                                            className="mt-4 w-full bg-[var(--fg-brand-strong)] px-4 py-3 text-sm font-bold text-white transition-opacity hover:opacity-80"
+                                        >
+                                            Bayar Sekarang
+                                        </button>
+                                    )}
+                                    {pkg.status === 'paid' &&
+                                        pkg.payment_proof && (
+                                            <p className="mt-2 text-xs text-[var(--fg-success-strong)]">
+                                                Bukti pembayaran sudah
+                                                dikonfirmasi.
+                                            </p>
+                                        )}
                                 </div>
                             </motion.div>
                         </div>

@@ -16,11 +16,10 @@ class PackageController extends Controller
         $query = Package::with(['user', 'zone']);
 
         if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('tracking_code', 'like', "%{$search}%")
-                    ->orWhere('recipient_name', 'like', "%{$search}%")
-                    ->orWhere('sender_name', 'like', "%{$search}%");
-            });
+            $query->whereFullText(
+                ['tracking_code', 'recipient_name', 'sender_name', 'sender_tracking_number'],
+                $search
+            );
         }
 
         if ($status = $request->input('status')) {
@@ -85,6 +84,18 @@ class PackageController extends Controller
         $package->update($validated);
 
         return redirect()->route('admin.packages')->with('success', 'Paket berhasil diperbarui.');
+    }
+
+    public function confirmPayment(Package $package)
+    {
+        abort_unless($package->status === 'waiting_for_payment', 422);
+
+        $package->update([
+            'status' => 'paid',
+            'paid_at' => now(),
+        ]);
+
+        return back()->with('success', 'Pembayaran dikonfirmasi. Status: Lunas.');
     }
 
     public function destroy(Package $package)

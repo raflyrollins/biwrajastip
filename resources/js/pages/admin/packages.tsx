@@ -1,8 +1,8 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { Package } from 'lucide-react';
-import { Search, Plus, X } from 'lucide-react';
-import { useState } from 'react';
+import { Search, Plus, X, Eye, CheckCircle } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 import Button from '@/components/Button';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -27,6 +27,7 @@ const statusColors: Record<string, string> = {
 
 interface Package {
     id: number;
+    uuid: string;
     tracking_code: string;
     recipient_name: string;
     recipient_phone: string | null;
@@ -34,8 +35,10 @@ interface Package {
     sender_store: string | null;
     final_weight: number | null;
     shipping_cost: number;
+    total_cost: number;
     status: string;
     status_label: string;
+    payment_proof: string | null;
     zone: { name: string } | null;
     user: { name: string; email: string } | null;
 }
@@ -61,12 +64,86 @@ interface AdminPackagesProps {
     filters: { search?: string; status?: string };
 }
 
+function ConfirmDialog({
+    pkg,
+    onConfirm,
+    onCancel,
+}: {
+    pkg: Package;
+    onConfirm: () => void;
+    onCancel: () => void;
+}) {
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <motion.div
+                className="mx-4 w-full max-w-md border border-[var(--border-default)] bg-[var(--neutral-primary-soft)] p-6"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+            >
+                <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-[var(--heading)]">
+                        Konfirmasi Pembayaran
+                    </h3>
+                    <button
+                        onClick={onCancel}
+                        className="text-[var(--body-subtle)] hover:text-[var(--heading)]"
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
+                <div className="space-y-3">
+                    <p className="text-sm text-[var(--body)]">
+                        Yakin ingin mengkonfirmasi pembayaran untuk paket ini?
+                    </p>
+                    <div className="border border-[var(--border-default)] bg-[var(--neutral-primary-soft)] p-3 text-sm">
+                        <div className="flex justify-between">
+                            <span className="text-[var(--body-subtle)]">
+                                Kode Tracking
+                            </span>
+                            <span className="font-mono font-medium text-[var(--heading)]">
+                                {pkg.tracking_code}
+                            </span>
+                        </div>
+                        <div className="mt-1 flex justify-between">
+                            <span className="text-[var(--body-subtle)]">
+                                Penerima
+                            </span>
+                            <span className="font-medium text-[var(--heading)]">
+                                {pkg.recipient_name}
+                            </span>
+                        </div>
+                        <div className="mt-1 flex justify-between">
+                            <span className="text-[var(--body-subtle)]">
+                                Total
+                            </span>
+                            <span className="font-bold text-[var(--fg-brand-strong)]">
+                                Rp{pkg.total_cost.toLocaleString('id-ID')}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div className="mt-6 flex justify-end gap-3">
+                    <Button variant="ghost" onClick={onCancel}>
+                        Batal
+                    </Button>
+                    <Button variant="primary" onClick={onConfirm}>
+                        Konfirmasi Bayar
+                    </Button>
+                </div>
+            </motion.div>
+        </div>
+    );
+}
+
 export default function AdminPackages({
     packages,
     zones,
     filters,
 }: AdminPackagesProps) {
     const [showForm, setShowForm] = useState(false);
+    const [proofPkg, setProofPkg] = useState<Package | null>(null);
+    const [confirmPkg, setConfirmPkg] = useState<Package | null>(null);
     const { data, setData, post, processing, errors, reset } = useForm({
         recipient_name: '',
         recipient_phone: '',
@@ -81,13 +158,29 @@ export default function AdminPackages({
         notes: '',
     });
 
+    const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     const handleSearch = (search: string) => {
-        router.get(
-            '/admin/packages',
-            { search, status: filters.status },
-            { preserveState: true, replace: true },
-        );
+        if (searchTimer.current) {
+            clearTimeout(searchTimer.current);
+        }
+
+        searchTimer.current = setTimeout(() => {
+            router.get(
+                '/admin/packages',
+                { search, status: filters.status },
+                { preserveState: true, replace: true },
+            );
+        }, 400);
     };
+
+    useEffect(() => {
+        return () => {
+            if (searchTimer.current) {
+                clearTimeout(searchTimer.current);
+            }
+        };
+    }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -97,6 +190,17 @@ export default function AdminPackages({
                 reset();
             },
         });
+    };
+
+    const handleConfirmPayment = (pkg: Package) => {
+        router.put(
+            `/admin/packages/${pkg.uuid}/confirm-payment`,
+            {},
+            {
+                preserveState: true,
+                onSuccess: () => setConfirmPkg(null),
+            },
+        );
     };
 
     return (
@@ -228,9 +332,14 @@ export default function AdminPackages({
                                             }
                                             className="w-full border border-[var(--border-default)] bg-[var(--neutral-primary-soft)] px-3 py-2 text-sm text-[var(--heading)] outline-none focus:border-[var(--fg-brand-strong)]"
                                         >
-                                            <option value="">Pilih zona</option>
+                                            <option value="">
+                                                Pilih zona
+                                            </option>
                                             {zones.map((z) => (
-                                                <option key={z.id} value={z.id}>
+                                                <option
+                                                    key={z.id}
+                                                    value={z.id}
+                                                >
                                                     {z.name}
                                                 </option>
                                             ))}
@@ -375,7 +484,10 @@ export default function AdminPackages({
                                         <textarea
                                             value={data.notes}
                                             onChange={(e) =>
-                                                setData('notes', e.target.value)
+                                                setData(
+                                                    'notes',
+                                                    e.target.value,
+                                                )
                                             }
                                             rows={2}
                                             className="w-full border border-[var(--border-default)] bg-[var(--neutral-primary-soft)] px-3 py-2 text-sm text-[var(--heading)] outline-none focus:border-[var(--fg-brand-strong)]"
@@ -407,6 +519,68 @@ export default function AdminPackages({
                         </div>
                     )}
 
+                    {/* ── Lihat Bukti Modal ── */}
+                    <AnimatePresence>
+                        {proofPkg && (
+                            <div
+                                key="proof-modal"
+                                className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+                            >
+                                <motion.div
+                                    className="mx-4 w-full max-w-lg border border-[var(--border-default)] bg-[var(--neutral-primary-soft)] p-6"
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                >
+                                    <div className="mb-4 flex items-center justify-between">
+                                        <h3 className="text-lg font-bold text-[var(--heading)]">
+                                            Bukti Pembayaran
+                                        </h3>
+                                        <button
+                                            onClick={() => setProofPkg(null)}
+                                            className="text-[var(--body-subtle)] hover:text-[var(--heading)]"
+                                        >
+                                            <X size={20} />
+                                        </button>
+                                    </div>
+                                    <div className="mb-4 text-sm text-[var(--body-subtle)]">
+                                        {proofPkg.tracking_code} —{' '}
+                                        {proofPkg.recipient_name}
+                                    </div>
+                                    <div className="flex items-center justify-center border border-[var(--border-default)] bg-black/5 p-2">
+                                        <img
+                                            src={`/storage/${proofPkg.payment_proof}`}
+                                            alt="Bukti Pembayaran"
+                                            className="max-h-[60vh] w-full object-contain"
+                                        />
+                                    </div>
+                                    <div className="mt-4 flex justify-end">
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => setProofPkg(null)}
+                                        >
+                                            Tutup
+                                        </Button>
+                                    </div>
+                                </motion.div>
+                            </div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* ── Konfirmasi Modal ── */}
+                    <AnimatePresence>
+                        {confirmPkg && (
+                            <ConfirmDialog
+                                key="confirm-modal"
+                                pkg={confirmPkg}
+                                onConfirm={() =>
+                                    handleConfirmPayment(confirmPkg)
+                                }
+                                onCancel={() => setConfirmPkg(null)}
+                            />
+                        )}
+                    </AnimatePresence>
+
                     {/* ── Table ── */}
                     <motion.div
                         className="border border-[var(--border-default)] bg-[var(--neutral-primary-soft)]"
@@ -436,13 +610,16 @@ export default function AdminPackages({
                                         <th className="px-6 py-4 font-medium text-[var(--heading)]">
                                             Status
                                         </th>
+                                        <th className="px-6 py-4 font-medium text-[var(--heading)]">
+                                            Aksi
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {packages.data.length === 0 ? (
                                         <tr>
                                             <td
-                                                colSpan={6}
+                                                colSpan={7}
                                                 className="px-6 py-12"
                                             >
                                                 <EmptyState
@@ -483,6 +660,57 @@ export default function AdminPackages({
                                                     >
                                                         {pkg.status_label}
                                                     </span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {pkg.status ===
+                                                            'waiting_for_payment' && (
+                                                            <>
+                                                                {pkg.payment_proof && (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        onClick={() =>
+                                                                            setProofPkg(
+                                                                                pkg,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Eye
+                                                                            size={
+                                                                                16
+                                                                            }
+                                                                        />
+                                                                        Lihat
+                                                                        Bukti
+                                                                    </Button>
+                                                                )}
+                                                                <Button
+                                                                    variant="primary"
+                                                                    onClick={() =>
+                                                                        setConfirmPkg(
+                                                                            pkg,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <CheckCircle
+                                                                        size={
+                                                                            16
+                                                                        }
+                                                                    />
+                                                                    Konfirmasi
+                                                                    Bayar
+                                                                </Button>
+                                                            </>
+                                                        )}
+                                                        {pkg.status ===
+                                                            'paid' &&
+                                                            pkg.total_cost >
+                                                                0 && (
+                                                                <span className="text-xs text-[var(--fg-success-strong)]">
+                                                                    Lunas
+                                                                </span>
+                                                            )}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))

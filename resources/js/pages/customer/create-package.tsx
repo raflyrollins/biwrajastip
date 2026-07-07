@@ -38,7 +38,7 @@ export default function CreatePackage({ zones }: CreatePackageProps) {
 
     const volumetricWeight =
         length && width && height
-            ? Math.ceil((length * width * height) / 6000)
+            ? Math.ceil((length * width * height) / 6000) * 1000
             : 0;
 
     const estimatedFinalWeight = Math.max(weightEstimated, volumetricWeight);

@@ -10,6 +10,7 @@ import EmptyState from '@/components/EmptyState';
 
 interface Zone {
     id: number;
+    uuid: string;
     name: string;
     tarif_per_kg: number;
     biaya_antar: number;
@@ -50,7 +51,7 @@ export default function AdminZones({ zones }: AdminZonesProps) {
         e.preventDefault();
 
         if (editing) {
-            put(`/admin/zones/${editing.id}`, {
+            put(`/admin/zones/${editing.uuid}`, {
                 onSuccess: () => {
                     setShowForm(false);
                     setEditing(null);
@@ -69,7 +70,7 @@ export default function AdminZones({ zones }: AdminZonesProps) {
 
     const handleDelete = (zone: Zone) => {
         if (confirm(`Hapus zona "${zone.name}"?`)) {
-            router.delete(`/admin/zones/${zone.id}`);
+            router.delete(`/admin/zones/${zone.uuid}`);
         }
     };
 

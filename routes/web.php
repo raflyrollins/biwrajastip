@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ZoneController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Customer\PackageController as CustomerPackageController;
+use App\Http\Controllers\Customer\PaymentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\StaffSurabaya\PackageController as StaffSurabayaPackageController;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +34,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/packages/create', [CustomerPackageController::class, 'create'])->name('customer.packages.create');
         Route::post('/packages', [CustomerPackageController::class, 'store'])->name('customer.packages.store');
         Route::get('/packages/{package}', [CustomerPackageController::class, 'show'])->name('customer.packages.show');
+        Route::get('/packages/{package}/pay', [PaymentController::class, 'showPayment'])->name('customer.packages.pay');
+        Route::post('/packages/{package}/pay', [PaymentController::class, 'uploadProof'])->name('customer.packages.pay.upload');
     });
 
     // ── Staff Surabaya Routes ──
@@ -41,6 +44,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/packages/{package}/collect', [StaffSurabayaPackageController::class, 'collect'])->name('staff-sby.packages.collect');
         Route::get('/packages/{package}/weigh', [StaffSurabayaPackageController::class, 'showWeigh'])->name('staff-sby.packages.weigh');
         Route::post('/packages/{package}/weigh', [StaffSurabayaPackageController::class, 'weigh'])->name('staff-sby.packages.weigh.store');
+        Route::get('/packages/{package}/print', [StaffSurabayaPackageController::class, 'printReceipt'])->name('staff-sby.packages.print');
     });
 
     // ── Admin Routes ──
@@ -49,6 +53,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/packages', [PackageController::class, 'store'])->name('admin.packages.store');
         Route::get('/packages/{package}', [PackageController::class, 'show'])->name('admin.packages.show');
         Route::put('/packages/{package}', [PackageController::class, 'update'])->name('admin.packages.update');
+        Route::put('/packages/{package}/confirm-payment', [PackageController::class, 'confirmPayment'])->name('admin.packages.confirm-payment');
         Route::delete('/packages/{package}', [PackageController::class, 'destroy'])->name('admin.packages.destroy');
 
         Route::get('/batches', [BatchController::class, 'index'])->name('admin.batches');

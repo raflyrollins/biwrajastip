@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 class Package extends Model
 {
     protected $fillable = [
+        'uuid',
         'user_id',
         'tracking_code',
         'sender_name',
@@ -34,7 +35,25 @@ class Package extends Model
         'status',
         'bag_id',
         'notes',
+        'payment_proof',
+        'paid_at',
     ];
+
+    protected $appends = ['status_label'];
+
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $package) {
+            if (empty($package->uuid)) {
+                $package->uuid = (string) Str::uuid();
+            }
+        });
+    }
 
     protected function casts(): array
     {
@@ -67,7 +86,7 @@ class Package extends Model
 
     public static function calculateVolumetric(int $length, int $width, int $height): int
     {
-        return (int) ceil(($length * $width * $height) / 6000);
+        return (int) ceil(($length * $width * $height) / 6000) * 1000;
     }
 
     public static function calculateFinalWeight(int $weight, int $volumetric): int

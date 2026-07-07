@@ -30,6 +30,7 @@ recipient_name, recipient_phone, zone_id,
 weight_estimated, length_estimated, width_estimated, height_estimated, volumetric_estimated,
 length, width, height, weight_actual, volumetric_actual, final_weight,
 shipping_cost, delivery_fee, total_cost, status, bag_id, notes,
+payment_proof, paid_at,
 created_at, updated_at
 ```
 
@@ -49,7 +50,8 @@ created_at, updated_at
 
 ### Package Status Flow
 ```
-waiting_for_collection → collected → waiting_for_payment → paid → bagging
+waiting_for_collection → collected → waiting_for_payment → (customer uploads proof)
+→ paid (admin confirms) → bagging
 → berangkat_ke_pelabuhan → di_kapal → tiba_di_ende → disortir
 → siap_diambil / dalam_pengantaran → selesai
 ```
@@ -117,9 +119,17 @@ shipping_cost = ceil((tarif_per_kg × final_weight / 1000) + biaya_antar)
 - `customer/show-package.tsx` — detail page: estimated vs actual comparison table with volumetric breakdown
 
 ### Staff Surabaya Flow ✅
-- `StaffSurabaya\PackageController` — index, collect, showWeigh, weigh
-- `staff-surabaya/packages.tsx` — list with collect/weigh action buttons, stat cards
+- `StaffSurabaya\PackageController` — index (with tab filter), collect, showWeigh, weigh, printReceipt
+- `staff-surabaya/packages.tsx` — full package list with 5 tabs (menunggu/dikumpulkan/menunggu bayar/lunas/dikirim), stat cards per tab, action buttons per status
 - `staff-surabaya/weigh.tsx` — weigh form: live volumetric weight calculation + price computation, shows customer's estimated data for reference
+- `staff-surabaya/print-receipt.tsx` — printable receipt page for `paid` packages
+
+### Payment Flow ✅
+- Customer uploads payment proof on `/customer/packages/{package}/pay` (Customer\PaymentController)
+- Payment info: Bank BCA, Bank Mandiri, QRIS (static for now)
+- File upload stored in `storage/app/public/payment-proofs/`
+- Admin confirms payment via `/admin/packages/{package}/confirm-payment` → status `paid`, `paid_at` set
+- `payment_proof` + `paid_at` columns via migration
 
 ---
 
@@ -137,12 +147,8 @@ shipping_cost = ceil((tarif_per_kg × final_weight / 1000) + biaya_antar)
 - Batches exist but aren't linked to packages
 - Needs: assign packages to batch, batch status updates propagate
 
-### Payment Flow
-- Status goes from `waiting_for_payment` to `paid` but no payment confirmation UI
-- Needs: payment confirmation page (admin or staff)
-
-### QR Code / Cetak Resi
-- No QR code generation or label printing
+### QR Code on Receipt
+- Print receipt exists but no QR code/barcode on it yet
 
 ### Auto-assignment to Batch
 - Packages don't auto-join batches
@@ -157,10 +163,12 @@ shipping_cost = ceil((tarif_per_kg × final_weight / 1000) + biaya_antar)
 app/Http/Controllers/
 ├── AuthController.php
 ├── DashboardController.php
-├── Customer/PackageController.php
+├── Customer/
+│   ├── PackageController.php
+│   └── PaymentController.php
 ├── StaffSurabaya/PackageController.php
 └── Admin/
-    ├── PackageController.php
+    ├── PackageController.php (includes confirmPayment)
     ├── BatchController.php
     ├── ZoneController.php
     ├── UserController.php
@@ -184,8 +192,14 @@ routes/web.php
 ├── Auth routes (guest)
 ├── Dashboard route (auth)
 ├── Customer routes (role:customer, /customer/*)
+│   ├── Package CRUD
+│   └── Payment (pay + upload proof)
 ├── Staff Surabaya routes (role:staff_surabaya, /staff/surabaya/*)
+│   ├── Packages list (tab filter), collect, weigh
+│   └── Print receipt (for paid packages)
 └── Admin routes (role:admin, /admin/*)
+    ├── CRUD packages, batches, zones, users
+    └── confirmPayment
 ```
 
 ### Frontend
@@ -217,12 +231,14 @@ resources/js/
 │   ├── customer/
 │   │   ├── packages.tsx
 │   │   ├── create-package.tsx
-│   │   └── show-package.tsx
+│   │   ├── show-package.tsx (includes Bayar button + estimated cost breakdown)
+│   │   └── payment.tsx (bank info + upload proof)
 │   ├── staff-surabaya/
-│   │   ├── packages.tsx
-│   │   └── weigh.tsx
+│   │   ├── packages.tsx (tab filter, full status colors, action per status)
+│   │   ├── weigh.tsx
+│   │   └── print-receipt.tsx (printable receipt for paid packages)
 │   └── admin/
-│       ├── packages.tsx
+│       ├── packages.tsx (includes Konfirmasi Bayar button)
 │       ├── batches.tsx
 │       ├── zones.tsx
 │       ├── users.tsx
@@ -260,11 +276,41 @@ php artisan migrate             # Run migrations
 1. **Customer creates packages, admin does NOT** — per LOGIC.md, customer shops online → ships to Surabaya address → staff consolidates
 2. **`sender_tracking_number`** = store/expedition tracking number (NOT system tracking code `BWJ-XXXXXXXX`)
 3. **Dimensi tidak di-overwrite** — customer isi di `length_estimated/width_estimated/height_estimated`, staff isi di `length/width/height`
-4. **Volumetric applies to both** — rumus yang sama untuk estimasi dan aktual
+4. **Volumetric applies to both** — rumus yang sama untuk estimasi dan aktual. **Harus dalam gram** (konversi ×1000 dari hasil `P×L×T/6000`)
 5. **Harga = `ceil((tarif_per_kg × final_weight / 1000) + biaya_antar)`** — `tarif_per_kg` dalam gram
 6. **Role-based sidebar** — `roleNav` object maps each role to its menu items
 7. **Mobile responsive** — hamburger menu with slide-in sidebar for DashboardLayout
 8. **Per-role dashboards** — customer/staff_surabaya/admin each have their own dashboard view
+9. **Payment confirmation by admin ONLY** — staff_surabaya can collect, weigh, and print receipt, but cannot confirm payment
+10. **Customer uploads payment proof** — no payment gateway integration; manual transfer with proof upload. Bank info static for now
+
+---
+
+## Session 2026-07-07 — Fix Link 404 (Uncommitted)
+
+### Problem
+`Package` model uses `getRouteKeyName()` returning `'uuid'` for implicit route model binding, but frontend pages sent numeric `id` instead of `uuid` in URL paths, causing 404 errors.
+
+### Fixed Files (working tree, NOT committed)
+- **`customer/packages.tsx`**: Changed `router.get('/customer/packages/${pkg.id}')` → `${pkg.uuid}`. Added `uuid` to `PackageItem` interface.
+- **`staff-surabaya/packages.tsx`**: Changed all `pkg.id` → `pkg.uuid` in `collect`, `weigh`, and `print` URL paths. Added `uuid` + missing fields to `PackageItem`. Added 5-tab filter, stat cards, pagination, status colors.
+- **`staff-surabaya/weigh.tsx`**: Changed `post('/staff/surabaya/packages/${pkg.id}/weigh')` → `${pkg.uuid}`. Added `uuid` to interface. Fixed volumetric formula: `Math.ceil(.../6000)` → `Math.ceil(.../6000) * 1000`.
+
+### New Files Added (untracked, NOT committed)
+- `PaymentController.php` — `showPayment()` + `uploadProof()`
+- `customer/payment.tsx` — bank info + upload proof page
+- `staff-surabaya/print-receipt.tsx` — printable receipt for `paid` packages
+- Migration: `add_payment_fields_to_packages_table` (`payment_proof`, `paid_at`)
+- Migration: `add_uuid_and_fulltext_to_tables` (uuid columns + fulltext index)
+
+### Routes Added (uncommitted)
+- `customer.packages.pay` — GET `/customer/packages/{package}/pay`
+- `customer.packages.pay.upload` — POST `/customer/packages/{package}/pay`
+- `staff-sby.packages.print` — GET `/staff/surabaya/packages/{package}/print`
+- `admin.packages.confirm-payment` — PUT `/admin/packages/{package}/confirm-payment`
+
+### Key Insight
+Always check that frontend URL parameters match the model's route key (uuid vs id). The `PackageItem` interface in every page must include `uuid` field.
 
 ---
 
@@ -273,5 +319,4 @@ php artisan migrate             # Run migrations
 When continuing, ask user:
 1. Which role to build next? (staff_ende, owner, or something else)
 2. Want to build batch-to-package linking?
-3. Want to add payment confirmation flow?
-4. Want to add QR code / cetak resi?
+3. Want to add QR code generation? (barcode on receipt)

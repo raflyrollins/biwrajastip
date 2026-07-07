@@ -12,20 +12,48 @@ class PackageController extends Controller
 {
     public function index(Request $request): Response
     {
-        $packages = Package::with('zone')
-            ->whereIn('status', ['waiting_for_collection', 'collected'])
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
+        $tab = $request->query('tab', 'waiting');
+
+        $allowedTabs = [
+            'waiting',
+            'collected',
+            'waiting_for_payment',
+            'paid',
+            'bagging',
+        ];
+
+        if (! in_array($tab, $allowedTabs)) {
+            $tab = 'waiting';
+        }
+
+        $query = Package::with('zone');
+
+        if ($tab === 'waiting') {
+            $query->where('status', 'waiting_for_collection');
+        } elseif ($tab === 'collected') {
+            $query->where('status', 'collected');
+        } elseif ($tab === 'waiting_for_payment') {
+            $query->where('status', 'waiting_for_payment');
+        } elseif ($tab === 'paid') {
+            $query->where('status', 'paid');
+        } elseif ($tab === 'bagging') {
+            $query->whereIn('status', ['bagging', 'berangkat_ke_pelabuhan', 'di_kapal', 'tiba_di_ende', 'disortir', 'siap_diambil', 'dalam_pengantaran', 'selesai']);
+        }
+
+        $packages = $query->latest()->paginate(15)->withQueryString();
 
         $stats = [
             'waiting' => Package::where('status', 'waiting_for_collection')->count(),
             'collected' => Package::where('status', 'collected')->count(),
+            'waiting_for_payment' => Package::where('status', 'waiting_for_payment')->count(),
+            'paid' => Package::where('status', 'paid')->count(),
+            'bagging' => Package::whereIn('status', ['bagging', 'berangkat_ke_pelabuhan', 'di_kapal', 'tiba_di_ende', 'disortir', 'siap_diambil', 'dalam_pengantaran', 'selesai'])->count(),
         ];
 
         return Inertia::render('staff-surabaya/packages', [
             'packages' => $packages,
             'stats' => $stats,
+            'tab' => $tab,
         ]);
     }
 
@@ -79,10 +107,22 @@ class PackageController extends Controller
             'final_weight' => $finalWeight,
             'shipping_cost' => $shippingCost,
             'total_cost' => $shippingCost,
+            'delivery_fee' => $zone->biaya_antar,
             'status' => 'waiting_for_payment',
         ]);
 
-        return redirect()->route('staff-sby.packages')
+        return redirect()->route('staff-sby.packages', ['tab' => 'waiting_for_payment'])
             ->with('success', 'Paket selesai ditimbang. Harga: Rp'.number_format((float) $shippingCost, 0, ',', '.'));
+    }
+
+    public function printReceipt(Package $package): Response
+    {
+        abort_unless($package->status === 'paid', 403);
+
+        $package->load('zone', 'user');
+
+        return Inertia::render('staff-surabaya/print-receipt', [
+            'package' => $package,
+        ]);
     }
 }
