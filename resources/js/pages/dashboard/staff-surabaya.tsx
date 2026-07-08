@@ -89,7 +89,7 @@ export default function StaffSurabayaDashboard({
                         transition={{ duration: 0.4, delay: 0.3 }}
                     >
                         <Link
-                            href="/staff/surabaya/packages"
+                            href="/packages"
                             className="flex items-center justify-between border border-[var(--border-default)] bg-[var(--neutral-primary-soft)] p-6 transition-colors hover:bg-[var(--neutral-secondary-medium)]"
                         >
                             <div className="flex items-center gap-4">

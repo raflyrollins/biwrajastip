@@ -1,6 +1,15 @@
 import { Head, useForm } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { Ship, Plus, X, Package, Clock, Truck } from 'lucide-react';
+import {
+    Ship,
+    Plus,
+    X,
+    Package,
+    Clock,
+    Truck,
+    Printer,
+    Eye,
+} from 'lucide-react';
 import { useState } from 'react';
 
 import Button from '@/components/Button';
@@ -17,6 +26,7 @@ const statusColors: Record<string, string> = {
 
 interface Batch {
     id: number;
+    uuid: string;
     code: string;
     status: string;
     status_label: string;
@@ -26,6 +36,12 @@ interface Batch {
     departure_at: string | null;
     arrival_at: string | null;
     created_at: string;
+    bags: Array<{
+        id: number;
+        code: string;
+        total_packages: number;
+        total_weight: number;
+    }>;
 }
 
 interface PaginatedData {
@@ -48,7 +64,7 @@ export default function AdminBatches({ batches }: AdminBatchesProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/admin/batches', {
+        post('/batches', {
             onSuccess: () => {
                 setShowForm(false);
                 reset();
@@ -246,6 +262,9 @@ export default function AdminBatches({ batches }: AdminBatchesProps) {
                                         <th className="px-6 py-4 font-medium text-[var(--heading)]">
                                             Dibuat
                                         </th>
+                                        <th className="px-6 py-4 font-medium text-[var(--heading)]">
+                                            Aksi
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -294,6 +313,34 @@ export default function AdminBatches({ batches }: AdminBatchesProps) {
                                                     ).toLocaleDateString(
                                                         'id-ID',
                                                     )}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex gap-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            onClick={() =>
+                                                                window.open(
+                                                                    `/batches/${batch.uuid}`,
+                                                                    '_blank',
+                                                                )
+                                                            }
+                                                        >
+                                                            <Eye size={16} />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            onClick={() =>
+                                                                window.open(
+                                                                    `/batches/${batch.uuid}/print`,
+                                                                    '_blank',
+                                                                )
+                                                            }
+                                                        >
+                                                            <Printer
+                                                                size={16}
+                                                            />
+                                                        </Button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))

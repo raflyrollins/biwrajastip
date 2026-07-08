@@ -67,7 +67,7 @@ export default function CustomerPackages({ packages }: CustomerPackagesProps) {
                                 Semua paket yang sudah Anda daftarkan.
                             </p>
                         </div>
-                        <Link href="/customer/packages/create">
+                        <Link href="/packages/create">
                             <Button variant="primary">
                                 <Plus size={18} />
                                 Daftarkan Paket
@@ -126,11 +126,11 @@ export default function CustomerPackages({ packages }: CustomerPackagesProps) {
                                             <tr
                                                 key={pkg.id}
                                                 className="cursor-pointer border-b border-[var(--border-default)] last:border-b-0 hover:bg-[var(--neutral-secondary-medium)]"
-                                                    onClick={() =>
-                                                        router.get(
-                                                            `/customer/packages/${pkg.uuid}`,
-                                                        )
-                                                    }
+                                                onClick={() =>
+                                                    router.get(
+                                                        `/packages/${pkg.uuid}`,
+                                                    )
+                                                }
                                             >
                                                 <td className="px-6 py-4 font-mono text-xs font-medium text-[var(--heading)]">
                                                     {pkg.tracking_code}
@@ -177,7 +177,7 @@ export default function CustomerPackages({ packages }: CustomerPackagesProps) {
                                         <button
                                             onClick={() =>
                                                 router.get(
-                                                    '/customer/packages',
+                                                    '/packages',
                                                     {
                                                         page:
                                                             packages.current_page -
@@ -196,7 +196,7 @@ export default function CustomerPackages({ packages }: CustomerPackagesProps) {
                                         <button
                                             onClick={() =>
                                                 router.get(
-                                                    '/customer/packages',
+                                                    '/packages',
                                                     {
                                                         page:
                                                             packages.current_page +

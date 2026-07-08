@@ -167,7 +167,7 @@ export default function AdminPackages({
 
         searchTimer.current = setTimeout(() => {
             router.get(
-                '/admin/packages',
+                '/packages',
                 { search, status: filters.status },
                 { preserveState: true, replace: true },
             );
@@ -184,7 +184,7 @@ export default function AdminPackages({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/admin/packages', {
+        post('/packages', {
             onSuccess: () => {
                 setShowForm(false);
                 reset();
@@ -194,7 +194,7 @@ export default function AdminPackages({
 
     const handleConfirmPayment = (pkg: Package) => {
         router.put(
-            `/admin/packages/${pkg.uuid}/confirm-payment`,
+            `/packages/${pkg.uuid}/confirm-payment`,
             {},
             {
                 preserveState: true,
@@ -332,14 +332,9 @@ export default function AdminPackages({
                                             }
                                             className="w-full border border-[var(--border-default)] bg-[var(--neutral-primary-soft)] px-3 py-2 text-sm text-[var(--heading)] outline-none focus:border-[var(--fg-brand-strong)]"
                                         >
-                                            <option value="">
-                                                Pilih zona
-                                            </option>
+                                            <option value="">Pilih zona</option>
                                             {zones.map((z) => (
-                                                <option
-                                                    key={z.id}
-                                                    value={z.id}
-                                                >
+                                                <option key={z.id} value={z.id}>
                                                     {z.name}
                                                 </option>
                                             ))}
@@ -484,10 +479,7 @@ export default function AdminPackages({
                                         <textarea
                                             value={data.notes}
                                             onChange={(e) =>
-                                                setData(
-                                                    'notes',
-                                                    e.target.value,
-                                                )
+                                                setData('notes', e.target.value)
                                             }
                                             rows={2}
                                             className="w-full border border-[var(--border-default)] bg-[var(--neutral-primary-soft)] px-3 py-2 text-sm text-[var(--heading)] outline-none focus:border-[var(--fg-brand-strong)]"
@@ -733,7 +725,7 @@ export default function AdminPackages({
                                             key={page}
                                             onClick={() =>
                                                 router.get(
-                                                    '/admin/packages',
+                                                    '/packages',
                                                     { ...filters, page },
                                                     {
                                                         preserveState: true,

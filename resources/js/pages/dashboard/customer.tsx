@@ -107,7 +107,7 @@ export default function CustomerDashboard({ stats }: CustomerDashboardProps) {
                         transition={{ duration: 0.4, delay: 0.3 }}
                     >
                         <Link
-                            href="/customer/packages/create"
+                            href="/packages/create"
                             className="flex items-center justify-between border border-[var(--border-default)] bg-[var(--neutral-primary-soft)] p-6 transition-colors hover:bg-[var(--neutral-secondary-medium)]"
                         >
                             <div className="flex items-center gap-4">
@@ -129,7 +129,7 @@ export default function CustomerDashboard({ stats }: CustomerDashboardProps) {
                             />
                         </Link>
                         <Link
-                            href="/customer/packages"
+                            href="/packages"
                             className="flex items-center justify-between border border-[var(--border-default)] bg-[var(--neutral-primary-soft)] p-6 transition-colors hover:bg-[var(--neutral-secondary-medium)]"
                         >
                             <div className="flex items-center gap-4">

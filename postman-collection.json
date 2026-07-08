@@ -1,0 +1,543 @@
+{
+	"info": {
+		"name": "BiwraJastip - Bagging & Batch API",
+		"description": "API collection untuk testing fitur Bagging, Batch, dan Terima Paket.\n\nAlur:\n1. Login sebagai Staff (auth > 1. Login)\n2. Terima Paket: scan sender_tracking_number (no resi toko) → status jadi collected\n3. Buat Bag: scan tracking_code (code BiwraJastip) → status jadi bagging\n4. Buat Batch: scan kode Bag → assign bag ke batch",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "bag_code",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "batch_code",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "1. Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (pm.response.code === 200 && jsonData.token) {",
+									"    pm.collectionVariables.set('token', jsonData.token);",
+									"    pm.test('Login berhasil', function () {",
+									"        pm.expect(jsonData.token).to.be.a('string');",
+									"        pm.expect(jsonData.user).to.have.property('role');",
+									"    });",
+									"    console.log('Token tersimpan: ' + jsonData.token.substring(0, 30) + '...');",
+									"    console.log('User: ' + jsonData.user.name + ' (' + jsonData.user.role + ')');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"staff.sby@biwrajastip.com\",\n  \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Logout berhasil', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.eql('Berhasil logout.');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/logout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "logout"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Terima Paket",
+			"item": [
+				{
+					"name": "1. Scan - Validasi No Resi Toko",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Response OK', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"console.log('Valid: ' + JSON.stringify(jsonData.valid));",
+									"console.log('Invalid: ' + JSON.stringify(jsonData.invalid));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sender_tracking_numbers\": [\"SHP-2026-005\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/staff/packages/scan",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "staff", "packages", "scan"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Confirm - Update Status ke Collected",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Confirm berhasil', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.be.a('string');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sender_tracking_numbers\": [\"SHP-2026-005\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/staff/packages/confirm",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "staff", "packages", "confirm"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Scan - Multiple No Resi Toko",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Response OK', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"console.log('Valid: ' + JSON.stringify(jsonData.valid, null, 2));",
+									"console.log('Invalid: ' + JSON.stringify(jsonData.invalid, null, 2));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sender_tracking_numbers\": [\"SHP-2026-005\", \"TKP-2026-999\", \"TIDAK-ADA\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/staff/packages/scan",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "staff", "packages", "scan"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Buat Bag",
+			"item": [
+				{
+					"name": "1. Scan - Tracking Code (Paket Paid)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Response OK', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.package) {",
+									"    console.log('Package: ' + jsonData.package.tracking_code);",
+									"    console.log('Recipient: ' + jsonData.package.recipient_name);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"BWJ-5TF9YFMS\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/staff/bags/scan",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "staff", "bags", "scan"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Scan - Kode Tidak Valid",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Response OK', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"BWJ-NONEXISTENT\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/staff/bags/scan",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "staff", "bags", "scan"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Confirm - Buat Bag dari 2 Paket",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Bag created', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.bag).to.have.property('code');",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.bag) {",
+									"    pm.collectionVariables.set('bag_code', jsonData.bag.code);",
+									"    console.log('Bag: ' + jsonData.bag.code);",
+									"    console.log('Packages: ' + jsonData.bag.total_packages);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"package_ids\": [7, 8],\n  \"notes\": \"Bag test dari Postman\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/staff/bags/confirm",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "staff", "bags", "confirm"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Buat Batch",
+			"item": [
+				{
+					"name": "1. Scan - Kode Bag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Response OK', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.bag) {",
+									"    console.log('Bag: ' + jsonData.bag.code);",
+									"    console.log('Packages: ' + jsonData.bag.total_packages);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"{{bag_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/staff/batches/scan",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "staff", "batches", "scan"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Confirm - Buat Batch dari 2 Bag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Batch created', function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.batch).to.have.property('code');",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.batch) {",
+									"    pm.collectionVariables.set('batch_code', jsonData.batch.code);",
+									"    console.log('Batch: ' + jsonData.batch.code);",
+									"    console.log('Total packages: ' + jsonData.batch.total_packages);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bag_ids\": [1, 2],\n  \"notes\": \"Batch test dari Postman\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/staff/batches/confirm",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "staff", "batches", "confirm"]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

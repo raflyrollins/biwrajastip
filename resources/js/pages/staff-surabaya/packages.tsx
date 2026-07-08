@@ -65,7 +65,8 @@ const statusColors: Record<string, string> = {
     waiting_for_payment: 'bg-[var(--warning-soft)] text-[var(--fg-warning)]',
     paid: 'bg-[var(--success-soft)] text-[var(--fg-success-strong)]',
     bagging: 'bg-[var(--brand-softer)] text-[var(--fg-brand-strong)]',
-    berangkat_ke_pelabuhan: 'bg-[var(--brand-softer)] text-[var(--fg-brand-strong)]',
+    berangkat_ke_pelabuhan:
+        'bg-[var(--brand-softer)] text-[var(--fg-brand-strong)]',
     di_kapal: 'bg-[var(--brand-softer)] text-[var(--fg-brand-strong)]',
     tiba_di_ende: 'bg-[var(--success-soft)] text-[var(--fg-success-strong)]',
     disortir: 'bg-[var(--warning-soft)] text-[var(--fg-warning)]',
@@ -80,16 +81,12 @@ export default function StaffSurabayaPackages({
     tab,
 }: StaffSurabayaPackagesProps) {
     const handleCollect = (uuid: string) => {
-        router.put(
-            `/staff/surabaya/packages/${uuid}/collect`,
-            {},
-            { preserveState: true },
-        );
+        router.put(`/packages/${uuid}/collect`, {}, { preserveState: true });
     };
 
     const switchTab = (key: string) => {
         router.get(
-            '/staff/surabaya/packages',
+            '/packages',
             { tab: key },
             { preserveState: true, replace: true },
         );
@@ -321,7 +318,7 @@ export default function StaffSurabayaPackages({
                                                                 variant="ghost"
                                                                 onClick={() =>
                                                                     router.get(
-                                                                        `/staff/surabaya/packages/${pkg.uuid}/weigh`,
+                                                                        `/packages/${pkg.uuid}/weigh`,
                                                                     )
                                                                 }
                                                             >
@@ -333,8 +330,9 @@ export default function StaffSurabayaPackages({
                                                             <Button
                                                                 variant="ghost"
                                                                 onClick={() =>
-                                                                    router.get(
-                                                                        `/staff/surabaya/packages/${pkg.uuid}/print`,
+                                                                    window.open(
+                                                                        `/packages/${pkg.uuid}/print`,
+                                                                        '_blank',
                                                                     )
                                                                 }
                                                             >
@@ -365,7 +363,7 @@ export default function StaffSurabayaPackages({
                                         <button
                                             onClick={() =>
                                                 router.get(
-                                                    '/staff/surabaya/packages',
+                                                    '/packages',
                                                     {
                                                         tab,
                                                         page:
@@ -385,7 +383,7 @@ export default function StaffSurabayaPackages({
                                         <button
                                             onClick={() =>
                                                 router.get(
-                                                    '/staff/surabaya/packages',
+                                                    '/packages',
                                                     {
                                                         tab,
                                                         page:

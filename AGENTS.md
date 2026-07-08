@@ -25,13 +25,21 @@ npm run types:check    # tsc --noEmit
 
 # Tests
 php artisan test       # Pest (SQLite in-memory)
-# Or: composer test    # clears config + lint:check + types:check + test
+# Or: composer test    # config:clear → lint:check → types:check → test
 
 # CI check (what CI runs)
-composer ci:check      # lint:check → format:check → types:check → test
+composer ci:check      # npm lint:check → npm format:check → npm types:check → test
 ```
 
 **Order matters:** `lint` → `types:check` → `test`. The `composer test` script chains these automatically.
+
+## Critical Gotchas
+
+- **Package model uses UUID for route binding**, not numeric ID. `Package::getRouteKeyName()` returns `uuid`. All frontend URLs must pass `pkg.uuid`, not `pkg.id`. The `PackageItem` interface in every page must include `uuid`.
+- **`estimated` vs actual dimensions are separate columns.** Customer fills `length_estimated/width_estimated/height_estimated`. Staff fills `length/width/height`. They never overwrite each other.
+- **Volumetric formula:** `ceil(L × W × H / 6000) * 1000` (result in **grams**, note the ×1000). `final_weight = max(actual_weight, volumetric)`. Shipping cost: `ceil((tarif_per_kg × final_weight / 1000) + biaya_antar)`.
+- **Role-based access:** `role:customer`, `role:staff_surabaya`, `role:admin` middleware in `routes/web.php`. Sidebar menu driven by `roleNav` map in `DashboardLayout.tsx`.
+- **UI labels are Bahasa Indonesia.** Code/comments/variables in English; only user-facing labels and validation messages in Indonesian.
 
 ## Testing
 
@@ -55,6 +63,7 @@ composer ci:check      # lint:check → format:check → types:check → test
 - UI components: `resources/js/components/ui/` (ESLint ignored)
 - Utils: `resources/js/lib/utils.ts`
 - Wayfinder index: `resources/js/wayfinder/index.ts`
+- Permission helpers: `resources/js/lib/permissions.ts` — `useRole()`, `useHasRole()`, `useCan()`, `useCanAny()`
 
 ## Design System
 
@@ -72,3 +81,4 @@ composer ci:check      # lint:check → format:check → types:check → test
 - Tests run against SQLite in-memory, not MySQL/Postgres.
 - PHPStan level 7 (strict-ish for Laravel).
 - React Compiler (experimental Babel plugin) is active.
+- Spatie laravel-permission uses `web` guard (not `api`). Roles: `customer`, `staff_surabaya`, `admin`.

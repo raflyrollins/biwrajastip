@@ -35,7 +35,7 @@ export default function CustomerPayment({ package: pkg }: PaymentProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(`/customer/packages/${pkg.uuid}/pay`);
+        post(`/packages/${pkg.uuid}/pay`);
     };
 
     return (
@@ -51,9 +51,7 @@ export default function CustomerPayment({ package: pkg }: PaymentProps) {
                         transition={{ duration: 0.4 }}
                     >
                         <button
-                            onClick={() =>
-                                router.get(`/customer/packages/${pkg.uuid}`)
-                            }
+                            onClick={() => router.get(`/packages/${pkg.uuid}`)}
                             className="mb-4 flex items-center gap-2 text-sm text-[var(--body-subtle)] hover:text-[var(--heading)]"
                         >
                             <ArrowLeft size={16} />
@@ -88,9 +86,7 @@ export default function CustomerPayment({ package: pkg }: PaymentProps) {
                                     </p>
                                     <p className="text-3xl font-bold text-[var(--fg-brand-strong)]">
                                         Rp
-                                        {pkg.total_cost.toLocaleString(
-                                            'id-ID',
-                                        )}
+                                        {pkg.total_cost.toLocaleString('id-ID')}
                                     </p>
                                 </div>
 
@@ -144,8 +140,7 @@ export default function CustomerPayment({ package: pkg }: PaymentProps) {
                                             </p>
                                         </div>
                                         <p className="text-xs text-[var(--body-subtle)]">
-                                            Scan QRIS di atas untuk
-                                            pembayaran
+                                            Scan QRIS di atas untuk pembayaran
                                         </p>
                                     </div>
                                 </div>
@@ -171,16 +166,15 @@ export default function CustomerPayment({ package: pkg }: PaymentProps) {
                                         <div className="flex items-center gap-2 text-[var(--fg-success-strong)]">
                                             <CheckCircle size={20} />
                                             <p className="text-sm font-medium">
-                                                Bukti pembayaran sudah
-                                                diupload. Menunggu konfirmasi
-                                                admin.
+                                                Bukti pembayaran sudah diupload.
+                                                Menunggu konfirmasi admin.
                                             </p>
                                         </div>
                                         <Button
                                             variant="secondary"
                                             onClick={() =>
                                                 router.get(
-                                                    `/customer/packages/${pkg.uuid}`,
+                                                    `/packages/${pkg.uuid}`,
                                                 )
                                             }
                                         >
@@ -201,8 +195,7 @@ export default function CustomerPayment({ package: pkg }: PaymentProps) {
                                                 accept="image/jpeg,image/png"
                                                 onChange={(e) => {
                                                     const file =
-                                                        e.target
-                                                            .files?.[0] ??
+                                                        e.target.files?.[0] ??
                                                         null;
                                                     setData(
                                                         'payment_proof',

@@ -57,6 +57,11 @@ class Batch extends Model
         return $this->hasMany(Package::class);
     }
 
+    public function bags(): HasMany
+    {
+        return $this->hasMany(Bag::class);
+    }
+
     public function getStatusLabelAttribute(): string
     {
         return match ($this->status) {
@@ -64,6 +69,7 @@ class Batch extends Model
             'berangkat' => 'Berangkat',
             'di_kapal' => 'Di Kapal',
             'tiba' => 'Tiba',
+            'unbatched' => 'Unbatched',
             default => $this->status,
         };
     }

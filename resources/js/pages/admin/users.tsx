@@ -98,7 +98,7 @@ export default function AdminUsers({ users, filters }: AdminUsersProps) {
                 delete payload.password_confirmation;
             }
 
-            put(`/admin/users/${editing.uuid}`, {
+            put(`/users/${editing.uuid}`, {
                 onSuccess: () => {
                     setShowForm(false);
                     setEditing(null);
@@ -106,7 +106,7 @@ export default function AdminUsers({ users, filters }: AdminUsersProps) {
                 },
             });
         } else {
-            post('/admin/users', {
+            post('/users', {
                 onSuccess: () => {
                     setShowForm(false);
                     reset();
@@ -117,14 +117,14 @@ export default function AdminUsers({ users, filters }: AdminUsersProps) {
 
     const handleDelete = (user: User) => {
         if (confirm(`Hapus pengguna "${user.name}"?`)) {
-            router.delete(`/admin/users/${user.uuid}`);
+            router.delete(`/users/${user.uuid}`);
         }
     };
 
     const handleSearch = (value: string) => {
         setSearch(value);
         router.get(
-            '/admin/users',
+            '/users',
             { search: value, role: filters.role },
             { preserveState: true, replace: true },
         );
@@ -462,7 +462,7 @@ export default function AdminUsers({ users, filters }: AdminUsersProps) {
                                             variant="ghost"
                                             onClick={() =>
                                                 router.get(
-                                                    '/admin/users',
+                                                    '/users',
                                                     {
                                                         ...filters,
                                                         page:
@@ -481,7 +481,7 @@ export default function AdminUsers({ users, filters }: AdminUsersProps) {
                                             variant="ghost"
                                             onClick={() =>
                                                 router.get(
-                                                    '/admin/users',
+                                                    '/users',
                                                     {
                                                         ...filters,
                                                         page:

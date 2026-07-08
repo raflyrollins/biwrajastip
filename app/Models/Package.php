@@ -104,6 +104,11 @@ class Package extends Model
         return $this->belongsTo(Zone::class);
     }
 
+    public function bag(): BelongsTo
+    {
+        return $this->belongsTo(Bag::class);
+    }
+
     public function getStatusLabelAttribute(): string
     {
         return match ($this->status) {

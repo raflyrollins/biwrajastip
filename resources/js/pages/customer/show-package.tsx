@@ -89,7 +89,7 @@ export default function ShowPackage({ package: pkg }: ShowPackageProps) {
                         transition={{ duration: 0.4 }}
                     >
                         <button
-                            onClick={() => router.get('/customer/packages')}
+                            onClick={() => router.get('/packages')}
                             className="mb-4 flex items-center gap-2 text-sm text-[var(--body-subtle)] hover:text-[var(--heading)]"
                         >
                             <ArrowLeft size={16} />
@@ -463,12 +463,11 @@ export default function ShowPackage({ package: pkg }: ShowPackageProps) {
                                             Harga final setelah penimbangan.
                                         </p>
                                     </div>
-                                    {pkg.status ===
-                                        'waiting_for_payment' && (
+                                    {pkg.status === 'waiting_for_payment' && (
                                         <button
                                             onClick={() =>
                                                 router.get(
-                                                    `/customer/packages/${pkg.uuid}/pay`,
+                                                    `/packages/${pkg.uuid}/pay`,
                                                 )
                                             }
                                             className="mt-4 w-full bg-[var(--fg-brand-strong)] px-4 py-3 text-sm font-bold text-white transition-opacity hover:opacity-80"

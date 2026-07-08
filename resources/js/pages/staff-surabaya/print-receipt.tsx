@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface PackageData {
     tracking_code: string;
@@ -45,7 +46,7 @@ export default function PrintReceipt({ package: pkg }: PrintReceiptProps) {
             <div className="mx-auto max-w-[320px] bg-white p-6 text-black print:mx-0 print:max-w-none">
                 {/* ── Judul ── */}
                 <div className="mb-4 text-center">
-                    <h1 className="text-lg font-bold uppercase tracking-wide">
+                    <h1 className="text-lg font-bold tracking-wide uppercase">
                         BiwraJastip
                     </h1>
                     <p className="text-xs text-gray-500">
@@ -60,9 +61,20 @@ export default function PrintReceipt({ package: pkg }: PrintReceiptProps) {
                     </p>
                 </div>
 
+                {/* ── QR Code ── */}
+                <div className="mb-4 flex justify-center">
+                    <QRCodeSVG
+                        value={pkg.tracking_code}
+                        size={120}
+                        bgColor="#ffffff"
+                        fgColor="#000000"
+                        level="M"
+                    />
+                </div>
+
                 {/* ── Penerima ── */}
                 <div className="mb-4 border border-black p-3">
-                    <p className="mb-1 text-xs font-bold uppercase tracking-wide text-gray-500">
+                    <p className="mb-1 text-xs font-bold tracking-wide text-gray-500 uppercase">
                         Penerima
                     </p>
                     <p className="text-base font-bold">{pkg.recipient_name}</p>
@@ -78,7 +90,7 @@ export default function PrintReceipt({ package: pkg }: PrintReceiptProps) {
 
                 {/* ── Pengirim ── */}
                 <div className="mb-4 border border-black p-3">
-                    <p className="mb-1 text-xs font-bold uppercase tracking-wide text-gray-500">
+                    <p className="mb-1 text-xs font-bold tracking-wide text-gray-500 uppercase">
                         Pengirim
                     </p>
                     <p className="text-sm font-medium">
@@ -98,7 +110,7 @@ export default function PrintReceipt({ package: pkg }: PrintReceiptProps) {
 
                 {/* ── Detail Paket ── */}
                 <div className="mb-4 border border-black p-3">
-                    <p className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">
+                    <p className="mb-2 text-xs font-bold tracking-wide text-gray-500 uppercase">
                         Detail Paket
                     </p>
                     <div className="space-y-1 text-sm">
@@ -119,9 +131,7 @@ export default function PrintReceipt({ package: pkg }: PrintReceiptProps) {
                             </span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-gray-500">
-                                Volumetrik
-                            </span>
+                            <span className="text-gray-500">Volumetrik</span>
                             <span className="font-medium">
                                 {pkg.volumetric_actual
                                     ? `${pkg.volumetric_actual.toLocaleString('id-ID')}g`
@@ -141,21 +151,21 @@ export default function PrintReceipt({ package: pkg }: PrintReceiptProps) {
 
                 {/* ── Harga ── */}
                 <div className="mb-4 border border-black p-3">
-                    <p className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">
+                    <p className="mb-2 text-xs font-bold tracking-wide text-gray-500 uppercase">
                         Rincian Biaya
                     </p>
                     <div className="space-y-1 text-sm">
                         <div className="flex justify-between">
                             <span className="text-gray-500">
-                                Tarif/kg ({pkg.zone?.tarif_per_kg
+                                Tarif/kg (
+                                {pkg.zone?.tarif_per_kg
                                     ? `Rp${pkg.zone.tarif_per_kg.toLocaleString('id-ID')}`
-                                    : '-'})
+                                    : '-'}
+                                )
                             </span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-gray-500">
-                                Biaya Antar
-                            </span>
+                            <span className="text-gray-500">Biaya Antar</span>
                             <span className="font-medium">
                                 {pkg.delivery_fee > 0
                                     ? `Rp${pkg.delivery_fee.toLocaleString('id-ID')}`
@@ -182,7 +192,7 @@ export default function PrintReceipt({ package: pkg }: PrintReceiptProps) {
 
                 {pkg.notes && (
                     <div className="mb-4 border border-black p-3">
-                        <p className="mb-1 text-xs font-bold uppercase tracking-wide text-gray-500">
+                        <p className="mb-1 text-xs font-bold tracking-wide text-gray-500 uppercase">
                             Catatan
                         </p>
                         <p className="text-sm">{pkg.notes}</p>
@@ -190,7 +200,8 @@ export default function PrintReceipt({ package: pkg }: PrintReceiptProps) {
                 )}
 
                 <div className="mb-6 text-center text-xs text-gray-400">
-                    Dicetak: {new Date().toLocaleDateString('id-ID', {
+                    Dicetak:{' '}
+                    {new Date().toLocaleDateString('id-ID', {
                         day: 'numeric',
                         month: 'long',
                         year: 'numeric',

@@ -67,7 +67,7 @@ export default function StaffSurabayaWeigh({ package: pkg }: WeighProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(`/staff/surabaya/packages/${pkg.uuid}/weigh`);
+        post(`/packages/${pkg.uuid}/weigh`);
     };
 
     return (
@@ -83,9 +83,7 @@ export default function StaffSurabayaWeigh({ package: pkg }: WeighProps) {
                         transition={{ duration: 0.4 }}
                     >
                         <button
-                            onClick={() =>
-                                router.get('/staff/surabaya/packages')
-                            }
+                            onClick={() => router.get('/packages')}
                             className="mb-4 flex items-center gap-2 text-sm text-[var(--body-subtle)] hover:text-[var(--heading)]"
                         >
                             <ArrowLeft size={16} />

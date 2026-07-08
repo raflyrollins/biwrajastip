@@ -8,6 +8,7 @@ import {
     Users,
     BarChart3,
     MapPin,
+    Box,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -25,27 +26,27 @@ interface NavItem {
 const roleNav: Record<UserRole, NavItem[]> = {
     customer: [
         { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-        { label: 'Paket Saya', icon: Package, href: '/customer/packages' },
+        { label: 'Paket Saya', icon: Package, href: '/packages' },
     ],
     staff_surabaya: [
         { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-        {
-            label: 'Terima Paket',
-            icon: Package,
-            href: '/staff/surabaya/packages',
-        },
+        { label: 'Terima Paket', icon: Package, href: '/packages' },
+        { label: 'Bag', icon: Box, href: '/bags' },
+        { label: 'Batch Kirim', icon: Ship, href: '/batches' },
     ],
     staff_ende: [
         { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
+        { label: 'Batch Masuk', icon: Ship, href: '/batches' },
     ],
     admin: [
         { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-        { label: 'Semua Paket', icon: Package, href: '/admin/packages' },
-        { label: 'Batch Kirim', icon: Ship, href: '/admin/batches' },
-        { label: 'Zona & Tarif', icon: MapPin, href: '/admin/zones' },
-        { label: 'Pengguna', icon: Users, href: '/admin/users' },
-        { label: 'Laporan', icon: BarChart3, href: '/admin/reports' },
-        { label: 'Pengaturan', icon: Settings, href: '/admin/settings' },
+        { label: 'Semua Paket', icon: Package, href: '/packages' },
+        { label: 'Bag', icon: Box, href: '/bags' },
+        { label: 'Batch Kirim', icon: Ship, href: '/batches' },
+        { label: 'Zona & Tarif', icon: MapPin, href: '/zones' },
+        { label: 'Pengguna', icon: Users, href: '/users' },
+        { label: 'Laporan', icon: BarChart3, href: '/reports' },
+        { label: 'Pengaturan', icon: Settings, href: '/settings' },
     ],
     owner: [{ label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' }],
 };

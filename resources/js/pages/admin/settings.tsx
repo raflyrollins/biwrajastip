@@ -30,12 +30,12 @@ export default function AdminSettings({ user }: AdminSettingsProps) {
 
     const handleProfileSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        profileForm.put('/admin/settings/profile');
+        profileForm.put('/settings/profile');
     };
 
     const handlePasswordSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        passwordForm.put('/admin/settings/password', {
+        passwordForm.put('/settings/password', {
             onSuccess: () => passwordForm.reset(),
         });
     };

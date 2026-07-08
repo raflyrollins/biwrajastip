@@ -53,7 +53,7 @@ export default function CreatePackage({ zones }: CreatePackageProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/customer/packages');
+        post('/packages');
     };
 
     return (
@@ -69,7 +69,7 @@ export default function CreatePackage({ zones }: CreatePackageProps) {
                         transition={{ duration: 0.4 }}
                     >
                         <button
-                            onClick={() => router.get('/customer/packages')}
+                            onClick={() => router.get('/packages')}
                             className="mb-4 flex items-center gap-2 text-sm text-[var(--body-subtle)] hover:text-[var(--heading)]"
                         >
                             <ArrowLeft size={16} />
