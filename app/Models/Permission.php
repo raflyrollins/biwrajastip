@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
@@ -12,19 +12,15 @@ use Illuminate\Support\Str;
  * @property int $id
  * @property string $uuid
  * @property string $name
- * @property float $delivery_fee
+ * @property string $label
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-class Zone extends Model
+class Permission extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['uuid', 'name', 'delivery_fee'];
-
-    protected $casts = [
-        'delivery_fee' => 'decimal:2',
-    ];
+    protected $fillable = ['uuid', 'name', 'label'];
 
     public function getRouteKeyName(): string
     {
@@ -33,15 +29,15 @@ class Zone extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (self $zone) {
-            if (empty($zone->uuid)) {
-                $zone->uuid = (string) Str::uuid();
+        static::creating(function (self $permission) {
+            if (empty($permission->uuid)) {
+                $permission->uuid = (string) Str::uuid();
             }
         });
     }
 
-    public function packages(): HasMany
+    public function roles(): BelongsToMany
     {
-        return $this->hasMany(Package::class);
+        return $this->belongsToMany(Role::class, 'role_permissions');
     }
 }

@@ -2,28 +2,27 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
+/**
+ * @property int $id
+ * @property string $uuid
+ * @property string $code
+ * @property string $status
+ * @property int|null $batch_id
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class Bag extends Model
 {
-    public const STATUS_IN_BATCH = 'in_batch';
+    use HasFactory;
 
-    public const STATUS_UNBAGGED = 'unbagged';
-
-    protected $fillable = [
-        'uuid',
-        'code',
-        'batch_id',
-        'notes',
-        'status',
-        'total_packages',
-        'total_weight',
-    ];
-
-    protected $appends = ['status_label'];
+    protected $fillable = ['uuid', 'code', 'status', 'batch_id'];
 
     public function getRouteKeyName(): string
     {
@@ -36,33 +35,26 @@ class Bag extends Model
             if (empty($bag->uuid)) {
                 $bag->uuid = (string) Str::uuid();
             }
+            if (empty($bag->code)) {
+                $bag->code = self::generateCode();
+            }
         });
-    }
-
-    protected function casts(): array
-    {
-        return [
-            'total_packages' => 'integer',
-            'total_weight' => 'integer',
-        ];
-    }
-
-    public function getStatusLabelAttribute(): string
-    {
-        return match ($this->status) {
-            self::STATUS_IN_BATCH => 'Dalam Batch',
-            self::STATUS_UNBAGGED => 'Unbagged',
-            default => $this->status,
-        };
     }
 
     public static function generateCode(): string
     {
-        do {
-            $code = 'BAG-'.strtoupper(Str::random(6));
-        } while (static::where('code', $code)->exists());
+        $today = now()->format('Ymd');
+        $lastBag = self::where('code', 'like', "BAG-{$today}-%")
+            ->orderByDesc('code')
+            ->first();
 
-        return $code;
+        if ($lastBag) {
+            $sequence = (int) substr($lastBag->code, -3) + 1;
+        } else {
+            $sequence = 1;
+        }
+
+        return sprintf('BAG-%s-%03d', $today, $sequence);
     }
 
     public function batch(): BelongsTo

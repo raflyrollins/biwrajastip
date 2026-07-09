@@ -35,7 +35,9 @@ composer ci:check      # npm lint:check → npm format:check → npm types:check
 
 ## Critical Gotchas
 
-- **Package model uses UUID for route binding**, not numeric ID. `Package::getRouteKeyName()` returns `uuid`. All frontend URLs must pass `pkg.uuid`, not `pkg.id`. The `PackageItem` interface in every page must include `uuid`.
+- **All code-related naming is English.** File names, folder names, URLs, database tables, columns, variables, functions, classes — all in English. Only UI-facing labels and messages are in Bahasa Indonesia.
+- **Every model uses UUID for route binding**, not numeric ID. `Model::getRouteKeyName()` returns `uuid`. All frontend URLs must pass model `uuid`. Every model must have `uuid` column with `auto-incrementing id` before it.
+- **Fulltext indexing on searchable text columns.** Add `FULLTEXT` index on columns that will be searched (e.g., `name`, `description`, `address`).
 - **`estimated` vs actual dimensions are separate columns.** Customer fills `length_estimated/width_estimated/height_estimated`. Staff fills `length/width/height`. They never overwrite each other.
 - **Volumetric formula:** `ceil(L × W × H / 6000) * 1000` (result in **grams**, note the ×1000). `final_weight = max(actual_weight, volumetric)`. Shipping cost: `ceil((tarif_per_kg × final_weight / 1000) + biaya_antar)`.
 - **Role-based access:** `role:customer`, `role:staff_surabaya`, `role:admin` middleware in `routes/web.php`. Sidebar menu driven by `roleNav` map in `DashboardLayout.tsx`.
@@ -63,7 +65,6 @@ composer ci:check      # npm lint:check → npm format:check → npm types:check
 - UI components: `resources/js/components/ui/` (ESLint ignored)
 - Utils: `resources/js/lib/utils.ts`
 - Wayfinder index: `resources/js/wayfinder/index.ts`
-- Permission helpers: `resources/js/lib/permissions.ts` — `useRole()`, `useHasRole()`, `useCan()`, `useCanAny()`
 
 ## Design System
 
@@ -81,4 +82,3 @@ composer ci:check      # npm lint:check → npm format:check → npm types:check
 - Tests run against SQLite in-memory, not MySQL/Postgres.
 - PHPStan level 7 (strict-ish for Laravel).
 - React Compiler (experimental Babel plugin) is active.
-- Spatie laravel-permission uses `web` guard (not `api`). Roles: `customer`, `staff_surabaya`, `admin`.

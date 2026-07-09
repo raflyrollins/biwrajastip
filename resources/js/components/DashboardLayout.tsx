@@ -1,55 +1,9 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import {
-    LayoutDashboard,
-    LogOut,
-    Package,
-    Settings,
-    Ship,
-    Users,
-    BarChart3,
-    MapPin,
-    Box,
-} from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import ThemeToggle from '@/components/ThemeToggle';
 import type { Auth } from '@/types';
-import type { UserRole } from '@/types';
-
-interface NavItem {
-    label: string;
-    icon: LucideIcon;
-    href: string;
-}
-
-const roleNav: Record<UserRole, NavItem[]> = {
-    customer: [
-        { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-        { label: 'Paket Saya', icon: Package, href: '/packages' },
-    ],
-    staff_surabaya: [
-        { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-        { label: 'Terima Paket', icon: Package, href: '/packages' },
-        { label: 'Bag', icon: Box, href: '/bags' },
-        { label: 'Batch Kirim', icon: Ship, href: '/batches' },
-    ],
-    staff_ende: [
-        { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-        { label: 'Batch Masuk', icon: Ship, href: '/batches' },
-    ],
-    admin: [
-        { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-        { label: 'Semua Paket', icon: Package, href: '/packages' },
-        { label: 'Bag', icon: Box, href: '/bags' },
-        { label: 'Batch Kirim', icon: Ship, href: '/batches' },
-        { label: 'Zona & Tarif', icon: MapPin, href: '/zones' },
-        { label: 'Pengguna', icon: Users, href: '/users' },
-        { label: 'Laporan', icon: BarChart3, href: '/reports' },
-        { label: 'Pengaturan', icon: Settings, href: '/settings' },
-    ],
-    owner: [{ label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' }],
-};
 
 interface DashboardLayoutProps {
     children: ReactNode;
@@ -62,8 +16,6 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
     const { auth } = usePage().props as { auth: Auth };
     const user = auth.user;
-    const role = user.role;
-    const navItems = roleNav[role] ?? [];
 
     return (
         <div data-surface="dashboard" className="flex min-h-dvh">
@@ -78,21 +30,7 @@ export default function DashboardLayout({
                     </Link>
                 </div>
 
-                <nav className="flex-1 overflow-y-auto p-3">
-                    <ul className="flex flex-col gap-1">
-                        {navItems.map((item) => (
-                            <li key={item.href}>
-                                <Link
-                                    href={item.href}
-                                    className="flex items-center gap-3 rounded-none px-4 py-2.5 text-sm font-medium text-[var(--body)] no-underline transition-colors duration-150 hover:bg-[var(--neutral-secondary-medium)] hover:text-[var(--heading)]"
-                                >
-                                    <item.icon size={18} />
-                                    {item.label}
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                </nav>
+                <div className="flex-1" />
 
                 <div className="border-t border-[var(--border-default)] p-4">
                     <div className="flex items-center gap-3">

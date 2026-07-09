@@ -2,44 +2,87 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
+/**
+ * @property int $id
+ * @property string $uuid
+ * @property int $user_id
+ * @property string $sender_name
+ * @property string $sender_phone
+ * @property string $receiver_name
+ * @property string $receiver_phone
+ * @property string $tracking_number
+ * @property string|null $tracking_number_biwra
+ * @property int $zone_id
+ * @property string $status
+ * @property float $weight_estimated
+ * @property float $length_estimated
+ * @property float $width_estimated
+ * @property float $height_estimated
+ * @property float|null $weight_actual
+ * @property float|null $length_actual
+ * @property float|null $width_actual
+ * @property float|null $height_actual
+ * @property float|null $price
+ * @property float|null $delivery_fee
+ * @property float|null $total_price
+ * @property int|null $bag_id
+ * @property int|null $batch_id
+ * @property Carbon|null $collected_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class Package extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'uuid',
         'user_id',
-        'tracking_code',
         'sender_name',
-        'sender_store',
-        'sender_tracking_number',
-        'recipient_name',
-        'recipient_phone',
+        'sender_phone',
+        'receiver_name',
+        'receiver_phone',
+        'tracking_number',
+        'tracking_number_biwra',
         'zone_id',
+        'status',
         'weight_estimated',
         'length_estimated',
         'width_estimated',
         'height_estimated',
-        'volumetric_estimated',
-        'length',
-        'width',
-        'height',
         'weight_actual',
-        'volumetric_actual',
-        'final_weight',
-        'shipping_cost',
+        'length_actual',
+        'width_actual',
+        'height_actual',
+        'price',
         'delivery_fee',
-        'total_cost',
-        'status',
+        'total_price',
         'bag_id',
-        'notes',
-        'payment_proof',
-        'paid_at',
+        'batch_id',
+        'collected_at',
     ];
 
-    protected $appends = ['status_label'];
+    protected $casts = [
+        'weight_estimated' => 'decimal:2',
+        'length_estimated' => 'decimal:2',
+        'width_estimated' => 'decimal:2',
+        'height_estimated' => 'decimal:2',
+        'weight_actual' => 'decimal:2',
+        'length_actual' => 'decimal:2',
+        'width_actual' => 'decimal:2',
+        'height_actual' => 'decimal:2',
+        'price' => 'decimal:2',
+        'delivery_fee' => 'decimal:2',
+        'total_price' => 'decimal:2',
+        'collected_at' => 'datetime',
+    ];
 
     public function getRouteKeyName(): string
     {
@@ -53,45 +96,6 @@ class Package extends Model
                 $package->uuid = (string) Str::uuid();
             }
         });
-    }
-
-    protected function casts(): array
-    {
-        return [
-            'weight_estimated' => 'integer',
-            'length_estimated' => 'integer',
-            'width_estimated' => 'integer',
-            'height_estimated' => 'integer',
-            'volumetric_estimated' => 'integer',
-            'length' => 'integer',
-            'width' => 'integer',
-            'height' => 'integer',
-            'weight_actual' => 'integer',
-            'volumetric_actual' => 'integer',
-            'final_weight' => 'integer',
-            'shipping_cost' => 'integer',
-            'delivery_fee' => 'integer',
-            'total_cost' => 'integer',
-        ];
-    }
-
-    public static function generateTrackingCode(): string
-    {
-        do {
-            $code = 'BWJ-'.strtoupper(Str::random(8));
-        } while (static::where('tracking_code', $code)->exists());
-
-        return $code;
-    }
-
-    public static function calculateVolumetric(int $length, int $width, int $height): int
-    {
-        return (int) ceil(($length * $width * $height) / 6000) * 1000;
-    }
-
-    public static function calculateFinalWeight(int $weight, int $volumetric): int
-    {
-        return max($weight, $volumetric);
     }
 
     public function user(): BelongsTo
@@ -109,22 +113,39 @@ class Package extends Model
         return $this->belongsTo(Bag::class);
     }
 
-    public function getStatusLabelAttribute(): string
+    public function batch(): BelongsTo
     {
-        return match ($this->status) {
-            'waiting_for_collection' => 'Menunggu Pengambilan',
-            'collected' => 'Dikumpulkan',
-            'waiting_for_payment' => 'Menunggu Pembayaran',
-            'paid' => 'Lunas',
-            'bagging' => 'Bagging',
-            'berangkat_ke_pelabuhan' => 'Berangkat',
-            'di_kapal' => 'Di Kapal',
-            'tiba_di_ende' => 'Tiba di Ende',
-            'disortir' => 'Disortir',
-            'siap_diambil' => 'Siap Diambil',
-            'dalam_pengantaran' => 'Dalam Pengantaran',
-            'selesai' => 'Selesai',
-            default => $this->status,
-        };
+        return $this->belongsTo(Batch::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function calculateVolumetricWeight(): float
+    {
+        $length = (float) $this->length_actual;
+        $width = (float) $this->width_actual;
+        $height = (float) $this->height_actual;
+
+        return ceil(($length * $width * $height) / 6000) * 1000;
+    }
+
+    public function calculateFinalWeight(): float
+    {
+        $actual = (float) $this->weight_actual;
+        $volumetric = $this->calculateVolumetricWeight();
+
+        return max($actual, $volumetric);
+    }
+
+    public function calculatePrice(float $tariffPerKg): float
+    {
+        $finalWeight = $this->calculateFinalWeight();
+        $weightKg = $finalWeight / 1000;
+        $roundedWeight = ceil($weightKg / 0.6) * 0.6;
+
+        return ceil($tariffPerKg * $roundedWeight);
     }
 }

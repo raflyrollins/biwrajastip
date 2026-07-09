@@ -6,11 +6,11 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class RoleMiddleware
+class PermissionMiddleware
 {
-    public function handle(Request $request, Closure $next, string ...$roles): Response
+    public function handle(Request $request, Closure $next, string ...$permissions): Response
     {
-        if (! $request->user() || ! $request->user()->hasAnyRole($roles)) {
+        if (! $request->user() || ! $request->user()->hasAnyPermission($permissions)) {
             abort(403, 'Unauthorized');
         }
 

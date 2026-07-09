@@ -2,21 +2,32 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
+/**
+ * @property int $id
+ * @property string $uuid
+ * @property string $code
+ * @property int $ship_id
+ * @property int $schedule_id
+ * @property string $departure_date
+ * @property string $status
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class Batch extends Model
 {
-    protected $fillable = [
-        'uuid',
-        'code',
-        'notes',
-        'status',
-        'total_packages',
-        'total_weight',
-        'departure_at',
-        'arrival_at',
+    use HasFactory;
+
+    protected $fillable = ['uuid', 'code', 'ship_id', 'schedule_id', 'departure_date', 'status'];
+
+    protected $casts = [
+        'departure_date' => 'date',
     ];
 
     public function getRouteKeyName(): string
@@ -30,31 +41,36 @@ class Batch extends Model
             if (empty($batch->uuid)) {
                 $batch->uuid = (string) Str::uuid();
             }
+            if (empty($batch->code)) {
+                $batch->code = self::generateCode();
+            }
         });
-    }
-
-    protected function casts(): array
-    {
-        return [
-            'total_packages' => 'integer',
-            'total_weight' => 'integer',
-            'departure_at' => 'datetime',
-            'arrival_at' => 'datetime',
-        ];
     }
 
     public static function generateCode(): string
     {
-        do {
-            $code = 'BATCH-'.strtoupper(Str::random(6));
-        } while (static::where('code', $code)->exists());
+        $today = now()->format('Ymd');
+        $lastBatch = self::where('code', 'like', "BATCH-{$today}-%")
+            ->orderByDesc('code')
+            ->first();
 
-        return $code;
+        if ($lastBatch) {
+            $sequence = (int) substr($lastBatch->code, -3) + 1;
+        } else {
+            $sequence = 1;
+        }
+
+        return sprintf('BATCH-%s-%03d', $today, $sequence);
     }
 
-    public function packages(): HasMany
+    public function ship(): BelongsTo
     {
-        return $this->hasMany(Package::class);
+        return $this->belongsTo(Ship::class);
+    }
+
+    public function schedule(): BelongsTo
+    {
+        return $this->belongsTo(Schedule::class);
     }
 
     public function bags(): HasMany
@@ -62,15 +78,8 @@ class Batch extends Model
         return $this->hasMany(Bag::class);
     }
 
-    public function getStatusLabelAttribute(): string
+    public function packages(): HasMany
     {
-        return match ($this->status) {
-            'preparing' => 'Persiapan',
-            'berangkat' => 'Berangkat',
-            'di_kapal' => 'Di Kapal',
-            'tiba' => 'Tiba',
-            'unbatched' => 'Unbatched',
-            default => $this->status,
-        };
+        return $this->hasMany(Package::class);
     }
 }

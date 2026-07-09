@@ -6,7 +6,6 @@ import type { Auth } from '@/types';
 
 const links = [
     { href: '/', label: 'Beranda' },
-    { href: '#check-shipping', label: 'Cek Ongkir' },
     { href: '#fitur', label: 'Fitur' },
     { href: '#alur-pengiriman', label: 'Alur Pengiriman' },
     { href: '#kontak', label: 'Kontak' },

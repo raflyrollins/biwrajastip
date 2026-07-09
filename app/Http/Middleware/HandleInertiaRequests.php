@@ -46,13 +46,12 @@ class HandleInertiaRequests extends Middleware
                     'name' => $user->name,
                     'email' => $user->email,
                     'phone' => $user->phone,
-                    'role' => $user->getRoleNames()->first() ?? 'customer',
                     'avatar' => $user->avatar ?? null,
                     'email_verified_at' => $user->email_verified_at?->toISOString(),
                     'created_at' => $user->created_at->toISOString(),
                     'updated_at' => $user->updated_at->toISOString(),
                 ] : null,
-                'permissions' => $user ? $user->getAllPermissions()->pluck('name')->toArray() : [],
+                'permissions' => [],
             ],
         ];
     }

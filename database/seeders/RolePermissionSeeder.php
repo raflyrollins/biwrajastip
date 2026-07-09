@@ -2,154 +2,169 @@
 
 namespace Database\Seeders;
 
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        // Reset cached roles and permissions
-        app()[PermissionRegistrar::class]->forgetCachedPermissions();
-
-        // ── Permissions ──
         $permissions = [
-            // Dashboard
-            'view dashboard',
+            // Package permissions
+            'packages.view' => 'Lihat Paket',
+            'packages.create' => 'Buat Paket',
+            'packages.update' => 'Update Paket',
+            'packages.delete' => 'Hapus Paket',
+            'packages.print' => 'Cetak Resi',
 
-            // Package (customer)
-            'view own packages',
-            'create package',
-            'view own tracking',
+            // Package scope permissions
+            'packages.scope.all' => 'Lihat Semua Paket',
+            'packages.scope.own' => 'Lihat Paket Sendiri',
+            'packages.scope.collected' => 'Lihat Paket Collected',
+            'packages.scope.transit' => 'Lihat Paket Transit',
 
-            // Package (shared)
-            'view all packages',
+            // Bag permissions
+            'bags.view' => 'Lihat Bag',
+            'bags.create' => 'Buat Bag',
+            'bags.update' => 'Update Bag',
+            'bags.delete' => 'Hapus Bag',
+            'bags.print' => 'Cetak Kode Bag',
 
-            // Staff Surabaya
-            'receive package',
-            'process bagging',
+            // Batch permissions
+            'batches.view' => 'Lihat Batch',
+            'batches.create' => 'Buat Batch',
+            'batches.update' => 'Update Batch',
+            'batches.delete' => 'Hapus Batch',
+            'batches.print' => 'Cetak Batch A4',
 
-            // Staff Ende
-            'sort packages',
-            'manage pickup',
+            // Payment permissions
+            'payments.view' => 'Lihat Pembayaran',
+            'payments.verify' => 'Verifikasi Pembayaran',
 
-            // Admin
-            'manage packages',
-            'manage batches',
-            'manage zones',
+            // Zone permissions
+            'zones.view' => 'Lihat Zona',
+            'zones.create' => 'Buat Zona',
+            'zones.update' => 'Update Zona',
+            'zones.delete' => 'Hapus Zona',
 
-            // Admin & Owner
-            'manage users',
-            'view reports',
-            'manage settings',
+            // Ship permissions
+            'ships.view' => 'Lihat Kapal',
+            'ships.create' => 'Buat Kapal',
+            'ships.update' => 'Update Kapal',
+            'ships.delete' => 'Hapus Kapal',
 
-            // Owner
-            'manage all',
+            // Schedule permissions
+            'schedules.view' => 'Lihat Jadwal',
+            'schedules.create' => 'Buat Jadwal',
+            'schedules.update' => 'Update Jadwal',
+            'schedules.delete' => 'Hapus Jadwal',
+
+            // User management permissions
+            'users.view' => 'Lihat User',
+            'users.create' => 'Buat User',
+            'users.update' => 'Update User',
+            'users.delete' => 'Hapus User',
+
+            // Role management permissions
+            'roles.view' => 'Lihat Role',
+            'roles.manage' => 'Kelola Role',
+
+            // Report permissions
+            'reports.view' => 'Lihat Laporan',
         ];
 
-        foreach ($permissions as $permission) {
-            Permission::findOrCreate($permission, 'web');
+        $permissionModels = [];
+        foreach ($permissions as $name => $label) {
+            $permissionModels[$name] = Permission::create([
+                'name' => $name,
+                'label' => $label,
+            ]);
         }
 
-        // ── Roles & Permissions ──
         $roles = [
-            'customer' => [
-                'view dashboard',
-                'view own packages',
-                'create package',
-                'view own tracking',
-            ],
-            'staff_surabaya' => [
-                'view dashboard',
-                'view all packages',
-                'receive package',
-                'process bagging',
-            ],
-            'staff_ende' => [
-                'view dashboard',
-                'view all packages',
-                'sort packages',
-                'manage pickup',
-            ],
-            'admin' => [
-                'view dashboard',
-                'manage packages',
-                'manage batches',
-                'manage zones',
-                'manage users',
-                'view reports',
-                'manage settings',
-            ],
-            'owner' => [
-                'view dashboard',
-                'view reports',
-                'manage users',
-                'manage settings',
-                'manage all',
-            ],
+            'customer' => 'Customer',
+            'staff_surabaya' => 'Staff Surabaya',
+            'staff_ende' => 'Staff Ende',
+            'admin' => 'Admin',
+            'owner' => 'Owner',
         ];
 
-        foreach ($roles as $roleName => $rolePermissions) {
-            $role = Role::findOrCreate($roleName, 'web');
-            $role->syncPermissions($rolePermissions);
+        $roleModels = [];
+        foreach ($roles as $name => $label) {
+            $roleModels[$name] = Role::create([
+                'name' => $name,
+                'label' => $label,
+            ]);
         }
 
-        // ── Users ──
-        $users = [
-            [
-                'name' => 'Customer',
-                'email' => 'customer@biwrajastip.com',
-                'phone' => '081234567890',
-                'password' => 'password',
-                'role' => 'customer',
-            ],
-            [
-                'name' => 'Staff Surabaya',
-                'email' => 'staff.sby@biwrajastip.com',
-                'phone' => '081234567891',
-                'password' => 'password',
-                'role' => 'staff_surabaya',
-            ],
-            [
-                'name' => 'Staff Ende',
-                'email' => 'staff.ende@biwrajastip.com',
-                'phone' => '081234567892',
-                'password' => 'password',
-                'role' => 'staff_ende',
-            ],
-            [
-                'name' => 'Admin',
-                'email' => 'admin@biwrajastip.com',
-                'phone' => '081234567893',
-                'password' => 'password',
-                'role' => 'admin',
-            ],
-            [
-                'name' => 'Owner',
-                'email' => 'owner@biwrajastip.com',
-                'phone' => '081234567894',
-                'password' => 'password',
-                'role' => 'owner',
-            ],
-        ];
+        // Customer permissions
+        $roleModels['customer']->permissions()->attach([
+            $permissionModels['packages.view']->id,
+            $permissionModels['packages.create']->id,
+            $permissionModels['packages.update']->id,
+            $permissionModels['packages.scope.own']->id,
+            $permissionModels['payments.view']->id,
+        ]);
 
-        foreach ($users as $userData) {
-            $role = $userData['role'];
-            unset($userData['role']);
+        // Staff Surabaya permissions
+        $roleModels['staff_surabaya']->permissions()->attach([
+            $permissionModels['packages.view']->id,
+            $permissionModels['packages.update']->id,
+            $permissionModels['packages.print']->id,
+            $permissionModels['packages.scope.collected']->id,
+            $permissionModels['bags.view']->id,
+            $permissionModels['bags.create']->id,
+            $permissionModels['bags.update']->id,
+            $permissionModels['bags.print']->id,
+            $permissionModels['batches.view']->id,
+            $permissionModels['batches.create']->id,
+            $permissionModels['batches.update']->id,
+            $permissionModels['batches.print']->id,
+        ]);
 
-            $user = User::firstOrCreate(
-                ['email' => $userData['email']],
-                [
-                    ...$userData,
-                    'password' => Hash::make($userData['password']),
-                ],
-            );
+        // Staff Ende permissions
+        $roleModels['staff_ende']->permissions()->attach([
+            $permissionModels['packages.view']->id,
+            $permissionModels['packages.update']->id,
+            $permissionModels['packages.scope.transit']->id,
+            $permissionModels['bags.view']->id,
+            $permissionModels['batches.view']->id,
+        ]);
 
-            $user->syncRoles($role);
-        }
+        // Admin permissions
+        $roleModels['admin']->permissions()->attach(array_column($permissionModels, 'id'));
+
+        // Owner permissions
+        $roleModels['owner']->permissions()->attach([
+            $permissionModels['packages.scope.all']->id,
+            $permissionModels['reports.view']->id,
+            $permissionModels['users.view']->id,
+            $permissionModels['users.create']->id,
+            $permissionModels['users.update']->id,
+            $permissionModels['users.delete']->id,
+            $permissionModels['roles.view']->id,
+            $permissionModels['roles.manage']->id,
+        ]);
+
+        // Default admin account
+        $admin = User::create([
+            'name' => 'Admin',
+            'email' => 'admin@biwrajastip.com',
+            'phone' => '081234567890',
+            'password' => Hash::make('password'),
+        ]);
+        $admin->assignRole('admin');
+
+        // Default owner account
+        $owner = User::create([
+            'name' => 'Owner',
+            'email' => 'owner@biwrajastip.com',
+            'phone' => '081234567891',
+            'password' => Hash::make('password'),
+        ]);
+        $owner->assignRole('owner');
     }
 }

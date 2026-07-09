@@ -1,14 +1,15 @@
 import { Head, Link } from '@inertiajs/react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-    ArrowRight,
-    Calculator,
     ChevronDown,
+    ChevronLeft,
+    ChevronRight,
     Package,
     ShieldCheck,
     Truck,
     Zap,
 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 import Button from '@/components/Button';
 import Container from '@/components/Container';
@@ -17,6 +18,32 @@ import Navbar from '@/components/Navbar';
 
 const HERO_IMG =
     'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=1920&q=80';
+
+const GALLERY_IMAGES = [
+    {
+        url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80',
+        caption: 'Proses packing dan pengemasan paket',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1553413077-190dd305871c?w=1200&q=80',
+        caption: 'Gudang konsolidasi kami di Surabaya',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1494412574643-ff11b0a5eb19?w=1200&q=80',
+        caption: 'Armada pengiriman menuju pelabuhan',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1605733160314-4fc7dac4bb16?w=1200&q=80',
+        caption: 'Paket tiba dan siap diambil di Ende',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=1200&q=80',
+        caption: 'Tracking paket secara real-time',
+    },
+];
+
+const PARALLAX_IMG =
+    'https://images.unsplash.com/photo-1553413077-190dd305871c?w=1920&q=80';
 
 const STEP_IMAGES: Record<string, string> = {
     collect:
@@ -35,7 +62,29 @@ const PEOPLE = [
     'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&q=80',
 ];
 
+const GALLERY_INTERVAL = 4000;
+
 export default function Welcome() {
+    const [galleryIndex, setGalleryIndex] = useState(0);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setGalleryIndex((prev) => (prev + 1) % GALLERY_IMAGES.length);
+        }, GALLERY_INTERVAL);
+
+        return () => clearInterval(timer);
+    }, []);
+
+    const prevGallery = useCallback(() => {
+        setGalleryIndex((prev) =>
+            prev === 0 ? GALLERY_IMAGES.length - 1 : prev - 1,
+        );
+    }, []);
+
+    const nextGallery = useCallback(() => {
+        setGalleryIndex((prev) => (prev + 1) % GALLERY_IMAGES.length);
+    }, []);
+
     return (
         <>
             <Head title="Selamat Datang" />
@@ -69,13 +118,11 @@ export default function Welcome() {
                             konsolidasi pengiriman Anda.
                         </p>
                         <div className="flex flex-wrap gap-4">
-                            <Button variant="white" size="large">
-                                Cek Ongkir
-                                <Calculator size={20} />
-                            </Button>
-                            <Button variant="white" size="large">
-                                Alur Pengiriman
-                            </Button>
+                            <Link href="/register">
+                                <Button variant="white" size="large">
+                                    Mulai
+                                </Button>
+                            </Link>
                         </div>
                     </motion.div>
 
@@ -178,6 +225,144 @@ export default function Welcome() {
                 </Container>
             </section>
 
+            {/* ── Gallery ── */}
+            <section
+                id="galeri"
+                className="bg-[var(--neutral-secondary-soft)] py-24"
+            >
+                <Container>
+                    <motion.div
+                        className="mb-12 text-center"
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: '-60px' }}
+                        transition={{ duration: 0.6 }}
+                    >
+                        <h2 className="mb-4 text-[28px] leading-[1.15] font-bold text-[var(--heading)] md:text-[36px] lg:text-[44px]">
+                            Galeri Pengiriman
+                        </h2>
+                        <p className="mx-auto max-w-[65ch] text-base leading-[1.7] text-[var(--body-subtle)]">
+                            Lihat proses pengiriman barang dari Surabaya hingga
+                            tiba di Ende.
+                        </p>
+                    </motion.div>
+
+                    <div className="relative mx-auto max-w-4xl">
+                        <div className="relative aspect-[16/9] overflow-hidden border border-[var(--border-default)] bg-[var(--neutral-primary)] shadow-xl">
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={galleryIndex}
+                                    className="absolute inset-0 bg-cover bg-center"
+                                    style={{
+                                        backgroundImage: `url(${GALLERY_IMAGES[galleryIndex].url})`,
+                                    }}
+                                    initial={{ opacity: 0, scale: 1.1 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    transition={{
+                                        duration: 0.7,
+                                        ease: 'easeInOut',
+                                    }}
+                                />
+                            </AnimatePresence>
+
+                            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 to-transparent" />
+
+                            <AnimatePresence mode="wait">
+                                <motion.p
+                                    key={`${galleryIndex}-caption`}
+                                    className="absolute right-6 bottom-4 left-6 text-sm text-white md:text-base"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.4 }}
+                                >
+                                    {GALLERY_IMAGES[galleryIndex].caption}
+                                </motion.p>
+                            </AnimatePresence>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={prevGallery}
+                            className="absolute top-1/2 -left-4 z-10 flex size-12 -translate-y-1/2 cursor-pointer items-center justify-center border border-[var(--border-default)] bg-[var(--neutral-primary)] text-[var(--heading)] shadow-lg transition-colors hover:bg-[var(--neutral-tertiary)]"
+                            aria-label="Gambar sebelumnya"
+                        >
+                            <ChevronLeft size={22} />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={nextGallery}
+                            className="absolute top-1/2 -right-4 z-10 flex size-12 -translate-y-1/2 cursor-pointer items-center justify-center border border-[var(--border-default)] bg-[var(--neutral-primary)] text-[var(--heading)] shadow-lg transition-colors hover:bg-[var(--neutral-tertiary)]"
+                            aria-label="Gambar berikutnya"
+                        >
+                            <ChevronRight size={22} />
+                        </button>
+
+                        <div className="mt-6 flex items-center justify-center gap-2">
+                            {GALLERY_IMAGES.map((_, index) => (
+                                <button
+                                    key={index}
+                                    type="button"
+                                    onClick={() => setGalleryIndex(index)}
+                                    className={`size-2.5 cursor-pointer border-none p-0 transition-all duration-300 ${
+                                        index === galleryIndex
+                                            ? 'w-8 bg-[var(--brand)]'
+                                            : 'bg-[var(--border-default)] hover:bg-[var(--gray)]'
+                                    }`}
+                                    aria-label={`Gambar ke-${index + 1}`}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </Container>
+            </section>
+
+            {/* ── Parallax ── */}
+            <section
+                className="relative h-[500px] overflow-hidden bg-cover bg-center"
+                style={{
+                    backgroundImage: `url(${PARALLAX_IMG})`,
+                    backgroundAttachment: 'fixed',
+                }}
+            >
+                <div className="absolute inset-0 bg-[var(--brand)]/70" />
+
+                <Container className="relative flex h-full flex-col items-center justify-center text-center">
+                    <motion.h2
+                        className="mb-4 text-[28px] leading-[1.15] font-bold text-[var(--on-brand)] md:text-[36px] lg:text-[44px]"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                    >
+                        Setiap Paket Punya Cerita
+                    </motion.h2>
+                    <motion.p
+                        className="mb-10 max-w-[65ch] text-base leading-[1.7] text-[var(--on-brand-muted)]"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, delay: 0.15 }}
+                    >
+                        Bersama BiwraJastip, setiap paket yang Anda kirim akan
+                        kami jaga dengan aman hingga tiba di Ende.
+                    </motion.p>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, delay: 0.3 }}
+                    >
+                        <Link href="/register">
+                            <Button variant="white" size="large">
+                                Mulai Kirim
+                            </Button>
+                        </Link>
+                    </motion.div>
+                </Container>
+            </section>
+
             {/* ── How It Works ── */}
             <section id="alur-pengiriman" className="bg-[var(--brand)] py-24">
                 <Container>
@@ -244,82 +429,6 @@ export default function Welcome() {
                             </motion.article>
                         ))}
                     </div>
-                </Container>
-            </section>
-
-            {/* ── Cek Ongkir CTA ── */}
-            <section id="check-shipping" className="bg-[var(--brand)] py-24">
-                <Container className="flex flex-col items-center text-center">
-                    <motion.h2
-                        className="mb-4 text-[28px] leading-[1.15] font-bold text-[var(--on-brand)] md:text-[36px] lg:text-[44px]"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                    >
-                        Cek Estimasi Ongkir
-                    </motion.h2>
-                    <motion.p
-                        className="mb-10 max-w-[65ch] text-base leading-[1.7] text-[var(--on-brand-muted)]"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.1 }}
-                    >
-                        Masukkan estimasi berat dan dimensi barang Anda untuk
-                        melihat perkiraan biaya pengiriman ke Ende.
-                    </motion.p>
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                    >
-                        <Link href="/check-shipping">
-                            <Button variant="white" size="large">
-                                Cek Ongkir
-                                <ArrowRight size={20} />
-                            </Button>
-                        </Link>
-                    </motion.div>
-                </Container>
-            </section>
-
-            {/* ── CTA ── */}
-            <section className="bg-[var(--brand)] py-24">
-                <Container className="flex flex-col items-center text-center">
-                    <motion.h2
-                        className="mb-4 text-[28px] leading-[1.15] font-bold text-[var(--on-brand)] md:text-[36px] lg:text-[44px]"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                    >
-                        Siap Kirim Barang?
-                    </motion.h2>
-                    <motion.p
-                        className="mb-10 max-w-[65ch] text-base leading-[1.7] text-[var(--on-brand-muted)]"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.1 }}
-                    >
-                        Daftar sekarang dan mulai kirim barang Anda dari Jawa ke
-                        Ende dengan mudah.
-                    </motion.p>
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                    >
-                        <Link href="/register">
-                            <Button variant="white" size="large">
-                                Daftar Sekarang
-                                <ArrowRight size={20} />
-                            </Button>
-                        </Link>
-                    </motion.div>
                 </Container>
             </section>
 

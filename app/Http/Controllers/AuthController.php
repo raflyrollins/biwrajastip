@@ -57,8 +57,6 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $user->assignRole('customer');
-
         Auth::login($user);
 
         return redirect('/');

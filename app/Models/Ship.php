@@ -12,19 +12,15 @@ use Illuminate\Support\Str;
  * @property int $id
  * @property string $uuid
  * @property string $name
- * @property float $delivery_fee
+ * @property string|null $description
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-class Zone extends Model
+class Ship extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['uuid', 'name', 'delivery_fee'];
-
-    protected $casts = [
-        'delivery_fee' => 'decimal:2',
-    ];
+    protected $fillable = ['uuid', 'name', 'description'];
 
     public function getRouteKeyName(): string
     {
@@ -33,15 +29,20 @@ class Zone extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (self $zone) {
-            if (empty($zone->uuid)) {
-                $zone->uuid = (string) Str::uuid();
+        static::creating(function (self $ship) {
+            if (empty($ship->uuid)) {
+                $ship->uuid = (string) Str::uuid();
             }
         });
     }
 
-    public function packages(): HasMany
+    public function schedules(): HasMany
     {
-        return $this->hasMany(Package::class);
+        return $this->hasMany(Schedule::class);
+    }
+
+    public function batches(): HasMany
+    {
+        return $this->hasMany(Batch::class);
     }
 }
