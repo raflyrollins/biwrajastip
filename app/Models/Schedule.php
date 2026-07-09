@@ -23,11 +23,11 @@ class Schedule extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['uuid', 'ship_id', 'departure_date', 'arrival_date', 'status'];
+    protected $fillable = ['uuid', 'ship_id', 'departure_date', 'arrival_date', 'notes'];
 
     protected $casts = [
-        'departure_date' => 'date',
-        'arrival_date' => 'date',
+        'departure_date' => 'date:Y-m-d',
+        'arrival_date' => 'date:Y-m-d',
     ];
 
     public function getRouteKeyName(): string

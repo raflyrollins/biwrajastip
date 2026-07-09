@@ -12,9 +12,10 @@ return new class extends Migration
             $table->id();
             $table->uuid()->unique();
             $table->string('code')->unique();
-            $table->string('qr_code')->nullable();
-            $table->enum('status', ['created', 'in_batch', 'unbagged'])->default('created');
             $table->foreignId('batch_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('status')->default('created');
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->decimal('weight', 10, 2)->nullable();
             $table->timestamps();
         });
     }

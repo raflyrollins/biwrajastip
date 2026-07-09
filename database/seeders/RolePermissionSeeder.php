@@ -4,167 +4,170 @@ namespace Database\Seeders;
 
 use App\Models\Permission;
 use App\Models\Role;
-use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class RolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        $permissions = [
-            // Package permissions
-            'packages.view' => 'Lihat Paket',
-            'packages.create' => 'Buat Paket',
-            'packages.update' => 'Update Paket',
-            'packages.delete' => 'Hapus Paket',
-            'packages.print' => 'Cetak Resi',
-
-            // Package scope permissions
-            'packages.scope.all' => 'Lihat Semua Paket',
-            'packages.scope.own' => 'Lihat Paket Sendiri',
-            'packages.scope.collected' => 'Lihat Paket Collected',
-            'packages.scope.transit' => 'Lihat Paket Transit',
-
-            // Bag permissions
-            'bags.view' => 'Lihat Bag',
-            'bags.create' => 'Buat Bag',
-            'bags.update' => 'Update Bag',
-            'bags.delete' => 'Hapus Bag',
-            'bags.print' => 'Cetak Kode Bag',
-
-            // Batch permissions
-            'batches.view' => 'Lihat Batch',
-            'batches.create' => 'Buat Batch',
-            'batches.update' => 'Update Batch',
-            'batches.delete' => 'Hapus Batch',
-            'batches.print' => 'Cetak Batch A4',
-
-            // Payment permissions
-            'payments.view' => 'Lihat Pembayaran',
-            'payments.verify' => 'Verifikasi Pembayaran',
-
-            // Zone permissions
-            'zones.view' => 'Lihat Zona',
-            'zones.create' => 'Buat Zona',
-            'zones.update' => 'Update Zona',
-            'zones.delete' => 'Hapus Zona',
-
-            // Ship permissions
-            'ships.view' => 'Lihat Kapal',
-            'ships.create' => 'Buat Kapal',
-            'ships.update' => 'Update Kapal',
-            'ships.delete' => 'Hapus Kapal',
-
-            // Schedule permissions
-            'schedules.view' => 'Lihat Jadwal',
-            'schedules.create' => 'Buat Jadwal',
-            'schedules.update' => 'Update Jadwal',
-            'schedules.delete' => 'Hapus Jadwal',
-
-            // User management permissions
-            'users.view' => 'Lihat User',
-            'users.create' => 'Buat User',
-            'users.update' => 'Update User',
-            'users.delete' => 'Hapus User',
-
-            // Role management permissions
-            'roles.view' => 'Lihat Role',
-            'roles.manage' => 'Kelola Role',
-
-            // Report permissions
-            'reports.view' => 'Lihat Laporan',
-        ];
-
-        $permissionModels = [];
-        foreach ($permissions as $name => $label) {
-            $permissionModels[$name] = Permission::create([
-                'name' => $name,
-                'label' => $label,
-            ]);
-        }
-
         $roles = [
-            'customer' => 'Customer',
-            'staff_surabaya' => 'Staff Surabaya',
-            'staff_ende' => 'Staff Ende',
-            'admin' => 'Admin',
-            'owner' => 'Owner',
+            ['name' => 'customer', 'label' => 'Customer'],
+            ['name' => 'staff_surabaya', 'label' => 'Staff Surabaya'],
+            ['name' => 'staff_ende', 'label' => 'Staff Ende'],
+            ['name' => 'admin', 'label' => 'Admin'],
+            ['name' => 'owner', 'label' => 'Owner'],
         ];
 
-        $roleModels = [];
-        foreach ($roles as $name => $label) {
-            $roleModels[$name] = Role::create([
-                'name' => $name,
-                'label' => $label,
-            ]);
+        foreach ($roles as $role) {
+            Role::firstOrCreate(['name' => $role['name']], $role);
         }
 
-        // Customer permissions
-        $roleModels['customer']->permissions()->attach([
-            $permissionModels['packages.view']->id,
-            $permissionModels['packages.create']->id,
-            $permissionModels['packages.update']->id,
-            $permissionModels['packages.scope.own']->id,
-            $permissionModels['payments.view']->id,
-        ]);
+        $permissions = [
+            // Packages
+            ['name' => 'packages.view', 'label' => 'View Packages', 'group' => 'packages'],
+            ['name' => 'packages.create', 'label' => 'Create Packages', 'group' => 'packages'],
+            ['name' => 'packages.update', 'label' => 'Update Packages', 'group' => 'packages'],
+            ['name' => 'packages.delete', 'label' => 'Delete Packages', 'group' => 'packages'],
+            ['name' => 'packages.print', 'label' => 'Print Package Receipt', 'group' => 'packages'],
+            ['name' => 'packages.scope.own', 'label' => 'Scope: Own Packages', 'group' => 'packages'],
+            ['name' => 'packages.scope.collected', 'label' => 'Scope: Collected Packages', 'group' => 'packages'],
+            ['name' => 'packages.scope.transit', 'label' => 'Scope: Transit Packages', 'group' => 'packages'],
+            ['name' => 'packages.scope.all', 'label' => 'Scope: All Packages', 'group' => 'packages'],
+            // Bags
+            ['name' => 'bags.view', 'label' => 'View Bags', 'group' => 'bags'],
+            ['name' => 'bags.create', 'label' => 'Create Bags', 'group' => 'bags'],
+            ['name' => 'bags.update', 'label' => 'Update Bags', 'group' => 'bags'],
+            ['name' => 'bags.delete', 'label' => 'Delete Bags', 'group' => 'bags'],
+            ['name' => 'bags.print', 'label' => 'Print Bag Label', 'group' => 'bags'],
+            // Batches
+            ['name' => 'batches.view', 'label' => 'View Batches', 'group' => 'batches'],
+            ['name' => 'batches.create', 'label' => 'Create Batches', 'group' => 'batches'],
+            ['name' => 'batches.update', 'label' => 'Update Batches', 'group' => 'batches'],
+            ['name' => 'batches.delete', 'label' => 'Delete Batches', 'group' => 'batches'],
+            ['name' => 'batches.print', 'label' => 'Print Batch Manifest', 'group' => 'batches'],
+            // Payments
+            ['name' => 'payments.view', 'label' => 'View Payments', 'group' => 'payments'],
+            ['name' => 'payments.verify', 'label' => 'Verify Payments', 'group' => 'payments'],
+            // Ships
+            ['name' => 'ships.view', 'label' => 'View Ships', 'group' => 'ships'],
+            ['name' => 'ships.create', 'label' => 'Create Ships', 'group' => 'ships'],
+            ['name' => 'ships.update', 'label' => 'Update Ships', 'group' => 'ships'],
+            ['name' => 'ships.delete', 'label' => 'Delete Ships', 'group' => 'ships'],
+            // Schedules
+            ['name' => 'schedules.view', 'label' => 'View Schedules', 'group' => 'schedules'],
+            ['name' => 'schedules.create', 'label' => 'Create Schedules', 'group' => 'schedules'],
+            ['name' => 'schedules.update', 'label' => 'Update Schedules', 'group' => 'schedules'],
+            ['name' => 'schedules.delete', 'label' => 'Delete Schedules', 'group' => 'schedules'],
+            // Zones
+            ['name' => 'zones.view', 'label' => 'View Zones', 'group' => 'zones'],
+            ['name' => 'zones.create', 'label' => 'Create Zones', 'group' => 'zones'],
+            ['name' => 'zones.update', 'label' => 'Update Zones', 'group' => 'zones'],
+            ['name' => 'zones.delete', 'label' => 'Delete Zones', 'group' => 'zones'],
+            // Users
+            ['name' => 'users.view', 'label' => 'View Users', 'group' => 'users'],
+            ['name' => 'users.create', 'label' => 'Create Users', 'group' => 'users'],
+            ['name' => 'users.update', 'label' => 'Update Users', 'group' => 'users'],
+            ['name' => 'users.delete', 'label' => 'Delete Users', 'group' => 'users'],
+            // Roles
+            ['name' => 'roles.view', 'label' => 'View Roles', 'group' => 'roles'],
+            ['name' => 'roles.manage', 'label' => 'Manage Roles', 'group' => 'roles'],
+            // Reports
+            ['name' => 'reports.view', 'label' => 'View Reports', 'group' => 'reports'],
+            ['name' => 'reports.export', 'label' => 'Export Reports', 'group' => 'reports'],
+        ];
 
-        // Staff Surabaya permissions
-        $roleModels['staff_surabaya']->permissions()->attach([
-            $permissionModels['packages.view']->id,
-            $permissionModels['packages.update']->id,
-            $permissionModels['packages.print']->id,
-            $permissionModels['packages.scope.collected']->id,
-            $permissionModels['bags.view']->id,
-            $permissionModels['bags.create']->id,
-            $permissionModels['bags.update']->id,
-            $permissionModels['bags.print']->id,
-            $permissionModels['batches.view']->id,
-            $permissionModels['batches.create']->id,
-            $permissionModels['batches.update']->id,
-            $permissionModels['batches.print']->id,
-        ]);
+        foreach ($permissions as $perm) {
+            Permission::firstOrCreate(['name' => $perm['name']], $perm);
+        }
 
-        // Staff Ende permissions
-        $roleModels['staff_ende']->permissions()->attach([
-            $permissionModels['packages.view']->id,
-            $permissionModels['packages.update']->id,
-            $permissionModels['packages.scope.transit']->id,
-            $permissionModels['bags.view']->id,
-            $permissionModels['batches.view']->id,
-        ]);
+        $rolePermissions = [
+            'customer' => [
+                'packages.view',
+                'packages.create',
+                'packages.update',
+                'packages.scope.own',
+                'payments.view',
+                'zones.view',
+            ],
+            'staff_surabaya' => [
+                'packages.view',
+                'packages.update',
+                'packages.print',
+                'packages.scope.collected',
+                'bags.view',
+                'bags.create',
+                'bags.update',
+                'bags.print',
+                'batches.view',
+                'batches.create',
+                'batches.update',
+                'batches.print',
+            ],
+            'staff_ende' => [
+                'packages.view',
+                'packages.update',
+                'packages.scope.transit',
+                'bags.view',
+                'bags.update',
+                'batches.view',
+                'batches.update',
+            ],
+            'admin' => [
+                'packages.view',
+                'packages.create',
+                'packages.update',
+                'packages.delete',
+                'packages.print',
+                'packages.scope.all',
+                'bags.view',
+                'bags.create',
+                'bags.update',
+                'bags.delete',
+                'bags.print',
+                'batches.view',
+                'batches.create',
+                'batches.update',
+                'batches.delete',
+                'batches.print',
+                'payments.view',
+                'payments.verify',
+                'ships.view',
+                'ships.create',
+                'ships.update',
+                'ships.delete',
+                'schedules.view',
+                'schedules.create',
+                'schedules.update',
+                'schedules.delete',
+                'zones.view',
+                'zones.create',
+                'zones.update',
+                'zones.delete',
+                'users.view',
+                'users.create',
+                'users.update',
+                'users.delete',
+                'roles.view',
+                'roles.manage',
+                'reports.view',
+            ],
+            'owner' => [
+                'packages.scope.all',
+                'users.view',
+                'users.create',
+                'users.update',
+                'users.delete',
+                'roles.view',
+                'roles.manage',
+                'reports.view',
+                'reports.export',
+            ],
+        ];
 
-        // Admin permissions
-        $roleModels['admin']->permissions()->attach(array_column($permissionModels, 'id'));
-
-        // Owner permissions
-        $roleModels['owner']->permissions()->attach([
-            $permissionModels['packages.scope.all']->id,
-            $permissionModels['reports.view']->id,
-            $permissionModels['users.view']->id,
-            $permissionModels['users.create']->id,
-            $permissionModels['users.update']->id,
-            $permissionModels['users.delete']->id,
-            $permissionModels['roles.view']->id,
-            $permissionModels['roles.manage']->id,
-        ]);
-
-        // Default admin account
-        $admin = User::create([
-            'name' => 'Admin',
-            'email' => 'admin@biwrajastip.com',
-            'phone' => '081234567890',
-            'password' => Hash::make('password'),
-        ]);
-        $admin->assignRole('admin');
-
-        // Default owner account
-        $owner = User::create([
-            'name' => 'Owner',
-            'email' => 'owner@biwrajastip.com',
-            'phone' => '081234567891',
-            'password' => Hash::make('password'),
-        ]);
-        $owner->assignRole('owner');
+        foreach ($rolePermissions as $roleName => $permNames) {
+            $role = Role::where('name', $roleName)->firstOrFail();
+            $permissionIds = Permission::whereIn('name', $permNames)->pluck('id');
+            $role->permissions()->sync($permissionIds);
+        }
     }
 }

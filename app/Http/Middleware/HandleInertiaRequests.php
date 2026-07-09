@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Role;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -37,6 +39,28 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
+        $roleData = [];
+        $permissions = [];
+
+        if ($user) {
+            $user->loadMissing('roles.permissions');
+
+            /** @var Collection<int, Role> $userRoles */
+            $userRoles = $user->roles;
+
+            $roleData = $userRoles->map(fn (Role $role) => [
+                'id' => $role->id,
+                'name' => $role->name,
+                'label' => $role->label,
+            ])->values()->toArray();
+
+            $permissions = $userRoles
+                ->flatMap(fn (Role $role) => $role->permissions->pluck('name'))
+                ->unique()
+                ->values()
+                ->toArray();
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -50,8 +74,9 @@ class HandleInertiaRequests extends Middleware
                     'email_verified_at' => $user->email_verified_at?->toISOString(),
                     'created_at' => $user->created_at->toISOString(),
                     'updated_at' => $user->updated_at->toISOString(),
+                    'roles' => $roleData,
                 ] : null,
-                'permissions' => [],
+                'permissions' => $permissions,
             ],
         ];
     }

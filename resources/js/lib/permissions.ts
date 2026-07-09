@@ -21,3 +21,11 @@ export function useCanAny(permissions: string[]): boolean {
 
     return permissions.some((p) => perms.includes(p));
 }
+
+export function useUserRoles() {
+    return useAuth().user?.roles ?? [];
+}
+
+export function useHasRole(roleName: string): boolean {
+    return useUserRoles().some((r) => r.name === roleName);
+}

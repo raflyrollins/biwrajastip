@@ -12,10 +12,11 @@ return new class extends Migration
             $table->id();
             $table->uuid()->unique();
             $table->foreignId('package_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->decimal('amount', 12, 2);
-            $table->enum('payment_method', ['transfer', 'ewallet']);
-            $table->string('proof_image');
-            $table->enum('status', ['pending', 'verified', 'rejected'])->default('pending');
+            $table->string('payment_method')->nullable();
+            $table->string('proof_image')->nullable();
+            $table->string('status')->default('pending');
             $table->foreignId('verified_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('verified_at')->nullable();
             $table->text('notes')->nullable();

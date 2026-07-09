@@ -8,19 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('ships', function (Blueprint $table) {
+        Schema::create('zones', function (Blueprint $table) {
             $table->id();
             $table->uuid()->unique();
             $table->string('name');
+            $table->decimal('delivery_fee', 12, 2)->default(0);
+            $table->boolean('is_pusat')->default(false);
             $table->text('description')->nullable();
             $table->timestamps();
-
-            $table->fulltext(['name', 'description'], 'ship_fulltext');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('ships');
+        Schema::dropIfExists('zones');
     }
 };

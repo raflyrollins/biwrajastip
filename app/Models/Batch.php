@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BatchStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,10 +25,11 @@ class Batch extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['uuid', 'code', 'ship_id', 'schedule_id', 'departure_date', 'status'];
+    protected $fillable = ['uuid', 'code', 'ship_id', 'schedule_id', 'departure_date', 'status', 'created_by', 'notes'];
 
     protected $casts = [
         'departure_date' => 'date',
+        'status' => BatchStatus::class,
     ];
 
     public function getRouteKeyName(): string
@@ -81,5 +83,10 @@ class Batch extends Model
     public function packages(): HasMany
     {
         return $this->hasMany(Package::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BagStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,7 +23,12 @@ class Bag extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['uuid', 'code', 'status', 'batch_id'];
+    protected $fillable = ['uuid', 'code', 'status', 'batch_id', 'created_by', 'weight'];
+
+    protected $casts = [
+        'status' => BagStatus::class,
+        'weight' => 'decimal:2',
+    ];
 
     public function getRouteKeyName(): string
     {
@@ -65,5 +71,10 @@ class Bag extends Model
     public function packages(): HasMany
     {
         return $this->hasMany(Package::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

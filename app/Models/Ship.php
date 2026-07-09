@@ -20,7 +20,11 @@ class Ship extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['uuid', 'name', 'description'];
+    protected $fillable = ['uuid', 'name', 'description', 'is_active'];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 
     public function getRouteKeyName(): string
     {

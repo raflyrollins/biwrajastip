@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PackageStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -53,6 +54,7 @@ class Package extends Model
         'tracking_number_biwra',
         'zone_id',
         'status',
+        'description',
         'weight_estimated',
         'length_estimated',
         'width_estimated',
@@ -61,12 +63,16 @@ class Package extends Model
         'length_actual',
         'width_actual',
         'height_actual',
+        'volumetric_weight',
+        'final_weight',
         'price',
         'delivery_fee',
         'total_price',
         'bag_id',
         'batch_id',
         'collected_at',
+        'recipient_photo',
+        'recipient_name',
     ];
 
     protected $casts = [
@@ -78,10 +84,13 @@ class Package extends Model
         'length_actual' => 'decimal:2',
         'width_actual' => 'decimal:2',
         'height_actual' => 'decimal:2',
+        'volumetric_weight' => 'decimal:2',
+        'final_weight' => 'decimal:2',
         'price' => 'decimal:2',
         'delivery_fee' => 'decimal:2',
         'total_price' => 'decimal:2',
         'collected_at' => 'datetime',
+        'status' => PackageStatus::class,
     ];
 
     public function getRouteKeyName(): string

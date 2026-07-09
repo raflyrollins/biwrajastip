@@ -8,19 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('zones', function (Blueprint $table) {
+        Schema::create('schedules', function (Blueprint $table) {
             $table->id();
             $table->uuid()->unique();
-            $table->string('name')->unique();
-            $table->decimal('delivery_fee', 12, 2)->default(0);
+            $table->foreignId('ship_id')->constrained()->cascadeOnDelete();
+            $table->date('departure_date');
+            $table->date('arrival_date')->nullable();
+            $table->text('notes')->nullable();
             $table->timestamps();
-
-            $table->fulltext(['name'], 'zone_fulltext');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('zones');
+        Schema::dropIfExists('schedules');
     }
 };

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,6 +30,7 @@ class Payment extends Model
     protected $fillable = [
         'uuid',
         'package_id',
+        'user_id',
         'amount',
         'payment_method',
         'proof_image',
@@ -41,6 +43,7 @@ class Payment extends Model
     protected $casts = [
         'amount' => 'decimal:2',
         'verified_at' => 'datetime',
+        'status' => PaymentStatus::class,
     ];
 
     public function getRouteKeyName(): string
@@ -60,6 +63,11 @@ class Payment extends Model
     public function package(): BelongsTo
     {
         return $this->belongsTo(Package::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function verifier(): BelongsTo

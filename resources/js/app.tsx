@@ -1,5 +1,8 @@
 import { createInertiaApp } from '@inertiajs/react';
 import { configureEcho } from '@laravel/echo-react';
+import { createRoot } from 'react-dom/client';
+
+import { AlertProvider } from '@/contexts/AlertContext';
 
 configureEcho({
     broadcaster: 'reverb',
@@ -11,5 +14,16 @@ createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     progress: {
         color: '#4B5563',
+    },
+    setup({ el, App, props }) {
+        if (!el) {
+            return;
+        }
+
+        createRoot(el).render(
+            <AlertProvider>
+                <App {...props} />
+            </AlertProvider>,
+        );
     },
 });
