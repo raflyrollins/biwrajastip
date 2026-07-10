@@ -13,229 +13,375 @@ use App\Models\Ship;
 use App\Models\Zone;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BiwraHubController
 {
     public function collecting(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'tracking_number' => ['required', 'string'],
+            'tracking_numbers' => ['required', 'array', 'min:1'],
+            'tracking_numbers.*' => ['required', 'string'],
         ]);
 
-        $package = Package::where('tracking_number', $validated['tracking_number'])
-            ->where('status', PackageStatus::WaitingForCollection)
-            ->first();
+        $codes = $validated['tracking_numbers'];
 
-        if (! $package) {
+        return DB::transaction(function () use ($codes) {
+            $packages = Package::where(function ($q) use ($codes) {
+                $q->whereIn('tracking_number', $codes)
+                    ->orWhereIn('tracking_number_biwra', $codes);
+            })->lockForUpdate()->get();
+
+            $found = $packages->pluck('tracking_number')->merge(
+                $packages->pluck('tracking_number_biwra')
+            )->filter()->values()->toArray();
+
+            $notFound = array_diff($codes, $found);
+
+            if (! empty($notFound)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Paket tidak ditemukan: ' . implode(', ', $notFound),
+                    'not_found' => array_values($notFound),
+                ], 404);
+            }
+
+            $invalid = $packages->first(fn($p) => $p->status !== PackageStatus::WaitingForCollection);
+
+            if ($invalid) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Paket ' . $invalid->tracking_number . ' berstatus ' . $invalid->status->value . ', tidak dapat dikoleksi.',
+                    'invalid_package' => $invalid->tracking_number,
+                ], 422);
+            }
+
+            $now = now();
+
+            Package::whereIn('id', $packages->pluck('id'))->update([
+                'status' => PackageStatus::Collected,
+                'collected_at' => $now,
+            ]);
+
             return response()->json([
-                'success' => false,
-                'message' => 'Paket tidak ditemukan atau status tidak sesuai.',
-            ], 404);
-        }
-
-        $package->update([
-            'status' => PackageStatus::Collected,
-            'collected_at' => now(),
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'package' => $package->fresh(),
-        ]);
+                'success' => true,
+                'packages' => $packages->fresh(),
+            ]);
+        });
     }
 
     public function bagging(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'package_ids' => ['required', 'array', 'min:1'],
-            'package_ids.*' => ['string', 'exists:packages,uuid'],
+            'tracking_numbers' => ['required', 'array', 'min:1'],
+            'tracking_numbers.*' => ['required', 'string'],
         ]);
 
-        $packages = Package::whereIn('uuid', $validated['package_ids'])->get();
+        $codes = $validated['tracking_numbers'];
 
-        $allowedStatuses = [PackageStatus::Collected->value, PackageStatus::Paid->value];
-        $invalidStatus = $packages->first(fn ($p) => ! in_array((string) $p->status, $allowedStatuses, true));
+        return DB::transaction(function () use ($codes, $request) {
+            $packages = Package::where(function ($q) use ($codes) {
+                $q->whereIn('tracking_number', $codes)
+                    ->orWhereIn('tracking_number_biwra', $codes);
+            })->lockForUpdate()->get();
 
-        if ($invalidStatus) {
+            $found = $packages->pluck('tracking_number')->merge(
+                $packages->pluck('tracking_number_biwra')
+            )->filter()->values()->toArray();
+
+            $notFound = array_diff($codes, $found);
+
+            if (! empty($notFound)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Paket tidak ditemukan: ' . implode(', ', $notFound),
+                    'not_found' => array_values($notFound),
+                ], 404);
+            }
+
+            $invalid = $packages->first(fn($p) => $p->status !== PackageStatus::Paid);
+
+            if ($invalid) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Paket ' . $invalid->tracking_number . ' berstatus ' . $invalid->status->value . ', tidak dapat di-bagging.',
+                    'invalid_package' => $invalid->tracking_number,
+                ], 422);
+            }
+
+            $bag = Bag::create([
+                'status' => BagStatus::Created,
+                'created_by' => $request->user()->id,
+            ]);
+
+            Package::whereIn('id', $packages->pluck('id'))->update([
+                'bag_id' => $bag->id,
+                'status' => PackageStatus::Bagging,
+            ]);
+
+            $bag->refresh();
+
             return response()->json([
-                'success' => false,
-                'message' => 'Paket '.$invalidStatus->tracking_number.' berstatus tidak valid, tidak dapat di-bagging.',
-            ], 422);
-        }
-
-        $bag = Bag::create([
-            'status' => BagStatus::Created,
-            'created_by' => $request->user()->id,
-        ]);
-
-        Package::whereIn('uuid', $validated['package_ids'])->update([
-            'bag_id' => $bag->id,
-            'status' => PackageStatus::Bagging,
-        ]);
-
-        $bag->refresh();
-
-        return response()->json([
-            'success' => true,
-            'bag' => $bag,
-            'packages' => $packages->fresh(),
-        ]);
+                'success' => true,
+                'bag' => $bag,
+                'packages' => $packages->fresh(),
+            ]);
+        });
     }
 
     public function batching(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'bag_ids' => ['required', 'array', 'min:1'],
-            'bag_ids.*' => ['string', 'exists:bags,uuid'],
+            'bag_codes' => ['required', 'array', 'min:1'],
+            'bag_codes.*' => ['required', 'string', 'exists:bags,code'],
             'ship_id' => ['required', 'string', 'exists:ships,uuid'],
             'schedule_id' => ['required', 'string', 'exists:schedules,uuid'],
             'departure_date' => ['required', 'date'],
         ]);
 
-        $bags = Bag::whereIn('uuid', $validated['bag_ids'])->get();
+        return DB::transaction(function () use ($validated, $request) {
+            $bags = Bag::whereIn('code', $validated['bag_codes'])
+                ->lockForUpdate()
+                ->get();
 
-        $allowedStatuses = [BagStatus::Created->value, BagStatus::Unbagged->value];
-        $invalidBags = $bags->first(fn ($b) => ! in_array((string) $b->status, $allowedStatuses, true));
+            $allowedStatuses = [BagStatus::Created->value, BagStatus::Unbagged->value];
+            $invalid = $bags->first(fn($b) => ! in_array($b->status->value, $allowedStatuses, true));
 
-        if ($invalidBags) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Bag '.$invalidBags->code.' berstatus tidak valid, tidak dapat di-batching.',
-            ], 422);
-        }
+            if ($invalid) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bag ' . $invalid->code . ' berstatus tidak valid, tidak dapat di-batching.',
+                ], 422);
+            }
 
-        $ship = Ship::where('uuid', $validated['ship_id'])->firstOrFail();
-        $schedule = Schedule::where('uuid', $validated['schedule_id'])->firstOrFail();
+            $ship = Ship::where('uuid', $validated['ship_id'])->firstOrFail();
+            $schedule = Schedule::where('uuid', $validated['schedule_id'])->firstOrFail();
 
-        $batch = Batch::create([
-            'ship_id' => $ship->id,
-            'schedule_id' => $schedule->id,
-            'departure_date' => $validated['departure_date'],
-            'status' => BatchStatus::Preparing,
-            'created_by' => $request->user()->id,
-        ]);
-
-        Bag::whereIn('uuid', $validated['bag_ids'])->update([
-            'batch_id' => $batch->id,
-            'status' => BagStatus::InBatch,
-        ]);
-
-        foreach ($bags as $bag) {
-            Package::where('bag_id', $bag->id)->update([
-                'batch_id' => $batch->id,
-                'status' => PackageStatus::BerangkatKePelabuhan,
+            $batch = Batch::create([
+                'ship_id' => $ship->id,
+                'schedule_id' => $schedule->id,
+                'departure_date' => $validated['departure_date'],
+                'status' => BatchStatus::Preparing,
+                'created_by' => $request->user()->id,
             ]);
-        }
 
-        return response()->json([
-            'success' => true,
-            'batch' => $batch->fresh()->load(['ship', 'schedule']),
-            'bags' => $bags->fresh(),
-        ]);
+            Bag::whereIn('code', $validated['bag_codes'])->update([
+                'batch_id' => $batch->id,
+                'status' => BagStatus::InBatch,
+            ]);
+
+            foreach ($bags as $bag) {
+                Package::where('bag_id', $bag->id)->update([
+                    'batch_id' => $batch->id,
+                    'status' => PackageStatus::Batched,
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'batch' => $batch->fresh()->load(['ship', 'schedule']),
+                'bags' => $bags->fresh(),
+            ]);
+        });
     }
 
-    public function kapalBerangkat(Request $request): JsonResponse
+    public function sendToPort(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'batch_id' => ['required', 'string', 'exists:batches,uuid'],
+            'batch_code' => ['required', 'string', 'exists:batches,code'],
         ]);
 
-        $batch = Batch::where('uuid', $validated['batch_id'])->firstOrFail();
+        return DB::transaction(function () use ($validated) {
+            $batch = Batch::where('code', $validated['batch_code'])
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if ((string) $batch->status !== BatchStatus::Preparing->value) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Batch tidak dalam status preparing, tidak dapat diberangkatkan.',
-            ], 422);
-        }
+            if ($batch->status !== BatchStatus::Preparing) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Batch tidak dalam status preparing, tidak dapat dikirim ke pelabuhan.',
+                ], 422);
+            }
 
-        $batch->update(['status' => BatchStatus::Departed]);
+            Package::where('batch_id', $batch->id)
+                ->where('status', PackageStatus::Batched)
+                ->update(['status' => PackageStatus::HeadingToPort]);
 
-        Package::where('batch_id', $batch->id)
-            ->where('status', PackageStatus::BerangkatKePelabuhan)
-            ->update(['status' => PackageStatus::InTransit]);
-
-        return response()->json(['success' => true]);
+            return response()->json(['success' => true]);
+        });
     }
 
-    public function kapalSampai(Request $request): JsonResponse
+    public function arriveAtPort(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'batch_id' => ['required', 'string', 'exists:batches,uuid'],
+            'batch_code' => ['required', 'string', 'exists:batches,code'],
         ]);
 
-        $batch = Batch::where('uuid', $validated['batch_id'])->firstOrFail();
+        return DB::transaction(function () use ($validated) {
+            $batch = Batch::where('code', $validated['batch_code'])
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if ((string) $batch->status !== BatchStatus::Departed->value) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Batch belum berangkat, tidak dapat ditandai sampai.',
-            ], 422);
-        }
+            Package::where('batch_id', $batch->id)
+                ->where('status', PackageStatus::HeadingToPort)
+                ->update(['status' => PackageStatus::AtPort]);
 
-        $batch->update(['status' => BatchStatus::Arrived]);
+            $batch->update(['status' => BatchStatus::Preparing]);
 
-        Package::where('batch_id', $batch->id)
-            ->where('status', PackageStatus::InTransit)
-            ->update(['status' => PackageStatus::Arrived]);
+            return response()->json(['success' => true]);
+        });
+    }
 
-        return response()->json(['success' => true]);
+    public function shipDepart(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'batch_code' => ['required', 'string', 'exists:batches,code'],
+        ]);
+
+        return DB::transaction(function () use ($validated) {
+            $batch = Batch::where('code', $validated['batch_code'])
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($batch->status !== BatchStatus::Preparing) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Batch tidak dalam status preparing, tidak dapat diberangkatkan.',
+                ], 422);
+            }
+
+            $batch->update(['status' => BatchStatus::Departed]);
+
+            Package::where('batch_id', $batch->id)
+                ->whereIn('status', [
+                    PackageStatus::Batched->value,
+                    PackageStatus::HeadingToPort->value,
+                    PackageStatus::AtPort->value,
+                ])
+                ->update(['status' => PackageStatus::InTransit]);
+
+            return response()->json(['success' => true]);
+        });
+    }
+
+    public function shipArrive(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'batch_code' => ['required', 'string', 'exists:batches,code'],
+        ]);
+
+        return DB::transaction(function () use ($validated) {
+            $batch = Batch::where('code', $validated['batch_code'])
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($batch->status !== BatchStatus::Departed) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Batch belum berangkat, tidak dapat ditandai sampai.',
+                ], 422);
+            }
+
+            $batch->update(['status' => BatchStatus::Arrived]);
+
+            Package::where('batch_id', $batch->id)
+                ->where('status', PackageStatus::InTransit)
+                ->update(['status' => PackageStatus::Arrived]);
+
+            return response()->json(['success' => true]);
+        });
     }
 
     public function unbatching(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'batch_id' => ['required', 'string', 'exists:batches,uuid'],
+            'batch_code' => ['required', 'string', 'exists:batches,code'],
         ]);
 
-        $batch = Batch::where('uuid', $validated['batch_id'])->firstOrFail();
+        return DB::transaction(function () use ($validated) {
+            $batch = Batch::where('code', $validated['batch_code'])
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $batch->update(['status' => BatchStatus::Unbatched]);
+            if ($batch->status !== BatchStatus::Arrived) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Batch harus dalam status arrived untuk di-unbatch.',
+                ], 422);
+            }
 
-        $bags = Bag::where('batch_id', $batch->id)->get();
+            $batch->update(['status' => BatchStatus::Unbatched]);
 
-        return response()->json([
-            'success' => true,
-            'bags' => $bags,
-        ]);
+            Package::where('batch_id', $batch->id)
+                ->where('status', PackageStatus::Arrived)
+                ->update(['status' => PackageStatus::ArrivedAtWarehouse]);
+
+            $bags = Bag::where('batch_id', $batch->id)->get();
+
+            return response()->json([
+                'success' => true,
+                'bags' => $bags,
+            ]);
+        });
     }
 
     public function unbagging(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'bag_id' => ['required', 'string', 'exists:bags,uuid'],
+            'bag_code' => ['required', 'string', 'exists:bags,code'],
         ]);
 
-        $bag = Bag::where('uuid', $validated['bag_id'])->firstOrFail();
+        return DB::transaction(function () use ($validated) {
+            $bag = Bag::where('code', $validated['bag_code'])
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $bag->update(['status' => BagStatus::Unbagged]);
+            $packages = Package::where('bag_id', $bag->id)->get();
 
-        Package::where('bag_id', $bag->id)->update([
-            'bag_id' => null,
-            'batch_id' => null,
-            'status' => PackageStatus::ReadyForSorting,
-        ]);
+            $bag->update(['status' => BagStatus::Unbagged]);
 
-        $packages = Package::where('bag_id', $bag->id)->get();
+            Package::where('bag_id', $bag->id)->update([
+                'bag_id' => null,
+                'batch_id' => null,
+                'status' => PackageStatus::ReadyForSorting,
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'packages' => $packages,
-        ]);
+            return response()->json([
+                'success' => true,
+                'packages' => $packages,
+            ]);
+        });
     }
 
     public function sorting(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'package_id' => ['required', 'string', 'exists:packages,uuid'],
-            'result' => ['required', 'string', 'in:siap_diambil,dalam_pengantaran'],
+            'tracking_number' => ['required', 'string'],
+            'result' => ['required', 'string', 'in:ready_for_pickup,in_delivery'],
         ]);
 
-        $package = Package::where('uuid', $validated['package_id'])->firstOrFail();
+        $package = Package::where('tracking_number', $validated['tracking_number'])
+            ->orWhere('tracking_number_biwra', $validated['tracking_number'])
+            ->first();
 
-        $newStatus = $validated['result'] === 'siap_diambil'
-            ? PackageStatus::SiapDiambil
-            : PackageStatus::DalamPengantaran;
+        if (! $package) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Paket tidak ditemukan.',
+            ], 404);
+        }
+
+        if ($package->status !== PackageStatus::ReadyForSorting) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Paket belum siap untuk sorting (status: ' . $package->status->value . ').',
+            ], 422);
+        }
+
+        $newStatus = match ($validated['result']) {
+            'ready_for_pickup' => PackageStatus::ReadyForPickup,
+            'in_delivery' => PackageStatus::InDelivery,
+        };
 
         $package->update(['status' => $newStatus]);
 
@@ -245,15 +391,24 @@ class BiwraHubController
     public function ending(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'package_id' => ['required', 'string', 'exists:packages,uuid'],
-            'recipient_photo' => ['required', 'string'],
+            'tracking_number' => ['required', 'string'],
+            'recipient_photo' => ['required', 'string', 'max:2048'],
             'recipient_name' => ['required', 'string', 'max:255'],
         ]);
 
-        $package = Package::where('uuid', $validated['package_id'])->firstOrFail();
+        $package = Package::where('tracking_number', $validated['tracking_number'])
+            ->orWhere('tracking_number_biwra', $validated['tracking_number'])
+            ->first();
+
+        if (! $package) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Paket tidak ditemukan.',
+            ], 404);
+        }
 
         $package->update([
-            'status' => PackageStatus::Selesai,
+            'status' => PackageStatus::Completed,
             'recipient_photo' => $validated['recipient_photo'],
             'recipient_name' => $validated['recipient_name'],
         ]);
@@ -261,34 +416,113 @@ class BiwraHubController
         return response()->json(['success' => true]);
     }
 
-    public function scan(string $code): JsonResponse
+    private function validatePackageForModule(Package $item, ?string $module): array
     {
+        if (! $module) {
+            return ['valid' => true, 'message' => 'Paket ditemukan'];
+        }
+
+        $canProcess = match ($module) {
+            'collecting' => $item->status === PackageStatus::WaitingForCollection,
+            'bagging' => $item->status === PackageStatus::Paid,
+            'sorting' => $item->status === PackageStatus::ReadyForSorting,
+            'ending' => in_array($item->status, [PackageStatus::ReadyForPickup, PackageStatus::InDelivery], true),
+            default => true,
+        };
+
+        $message = match ($module) {
+            'collecting' => $canProcess ? 'Siap dikoleksi' : 'Status: ' . $item->status->value,
+            'bagging' => $canProcess ? 'Siap di-bagging' : 'Status: ' . $item->status->value,
+            'sorting' => $canProcess ? 'Siap sorting' : 'Status: ' . $item->status->value,
+            'ending' => $canProcess ? 'Siap di-ending' : 'Status: ' . $item->status->value,
+            default => 'Paket ditemukan',
+        };
+
+        return ['valid' => $canProcess, 'message' => $message];
+    }
+
+    private function validateBagForModule(Bag $item, ?string $module): array
+    {
+        if (! $module) {
+            return ['valid' => true, 'message' => 'Bag ditemukan'];
+        }
+
+        $canProcess = match ($module) {
+            'batching' => in_array($item->status, [BagStatus::Created, BagStatus::Unbagged], true),
+            'unbagging' => $item->status === BagStatus::InBatch,
+            default => true,
+        };
+
+        $message = match ($module) {
+            'batching' => $canProcess ? 'Siap di-batch' : 'Status: ' . $item->status->value,
+            'unbagging' => $canProcess ? 'Siap di-unbagging' : 'Status: ' . $item->status->value,
+            default => 'Bag ditemukan',
+        };
+
+        return ['valid' => $canProcess, 'message' => $message];
+    }
+
+    private function validateBatchForModule(Batch $item, ?string $module): array
+    {
+        if (! $module) {
+            return ['valid' => true, 'message' => 'Batch ditemukan'];
+        }
+
+        $canProcess = match ($module) {
+            'send-to-port', 'ship-depart' => $item->status === BatchStatus::Preparing,
+            'ship-arrive' => $item->status === BatchStatus::Departed,
+            'unbatching' => $item->status === BatchStatus::Arrived,
+            default => true,
+        };
+
+        $message = match ($module) {
+            'send-to-port', 'ship-depart' => $canProcess ? 'Siap diproses' : 'Status: ' . $item->status->value,
+            'ship-arrive' => $canProcess ? 'Siap tiba' : 'Status: ' . $item->status->value,
+            'unbatching' => $canProcess ? 'Siap di-unbatch' : 'Status: ' . $item->status->value,
+            default => 'Batch ditemukan',
+        };
+
+        return ['valid' => $canProcess, 'message' => $message];
+    }
+
+    public function scan(string $code, Request $request): JsonResponse
+    {
+        $module = $request->query('module');
+
         $package = Package::where('tracking_number', $code)
             ->orWhere('tracking_number_biwra', $code)
+            ->with(['zone', 'bag', 'batch.ship', 'batch.schedule'])
             ->first();
 
         if ($package) {
             return response()->json([
                 'type' => 'package',
-                'data' => $package->load(['zone', 'bag', 'batch.ship', 'batch.schedule']),
+                ...$this->validatePackageForModule($package, $module),
+                'data' => $package,
             ]);
         }
 
-        $bag = Bag::where('code', $code)->first();
+        $bag = Bag::where('code', $code)
+            ->with(['packages', 'batch'])
+            ->first();
 
         if ($bag) {
             return response()->json([
                 'type' => 'bag',
-                'data' => $bag->load(['packages', 'batch']),
+                ...$this->validateBagForModule($bag, $module),
+                'data' => $bag,
             ]);
         }
 
-        $batch = Batch::where('code', $code)->first();
+        $batch = Batch::where('code', $code)
+            ->with(['bags.packages', 'ship', 'schedule'])
+            ->first();
 
         if ($batch) {
             return response()->json([
                 'type' => 'batch',
-                'data' => $batch->load(['bags.packages', 'ship', 'schedule']),
+                ...$this->validateBatchForModule($batch, $module),
+                'data' => $batch,
             ]);
         }
 
@@ -296,40 +530,6 @@ class BiwraHubController
             'success' => false,
             'message' => 'Kode tidak ditemukan.',
         ], 404);
-    }
-
-    public function staffPackages(Request $request): JsonResponse
-    {
-        $user = $request->user();
-
-        $packages = Package::query();
-
-        if ($user->hasRole('staff_surabaya')) {
-            $packages->whereIn('status', [
-                PackageStatus::Collected,
-                PackageStatus::WaitingForPayment,
-                PackageStatus::Paid,
-                PackageStatus::Bagging,
-            ]);
-        } elseif ($user->hasRole('staff_ende')) {
-            $packages->whereIn('status', [
-                PackageStatus::InTransit,
-                PackageStatus::Arrived,
-                PackageStatus::ReadyForSorting,
-                PackageStatus::SiapDiambil,
-                PackageStatus::DalamPengantaran,
-                PackageStatus::Selesai,
-            ]);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'Akses tidak diizinkan.',
-            ], 403);
-        }
-
-        return response()->json([
-            'packages' => $packages->with(['zone', 'bag', 'batch'])->orderByDesc('created_at')->get(),
-        ]);
     }
 
     public function options(): JsonResponse

@@ -21,7 +21,7 @@ export default function DashboardLayout({
                 onClose={() => setSidebarOpen(false)}
             />
 
-            <div className="flex flex-1 flex-col md:ml-64">
+            <div className="min-w-0 flex flex-1 flex-col md:ml-64">
                 {/* ── Top bar (mobile) ── */}
                 <header className="flex h-16 items-center justify-between border-b border-[var(--border-default)] bg-[var(--neutral-primary-soft)] px-4 md:px-8">
                     <div className="flex items-center gap-3">
@@ -56,7 +56,7 @@ export default function DashboardLayout({
                 </header>
 
                 {/* ── Main content ── */}
-                <main className="flex-1 bg-[var(--neutral-secondary-soft)] p-6 md:p-8">
+                <main className="min-w-0 flex-1 bg-[var(--neutral-secondary-soft)] p-6 md:p-8">
                     {children}
                 </main>
             </div>

@@ -11,18 +11,21 @@ class ScheduleController extends Controller
 {
     public function index()
     {
+        $perPage = min((int) request('per_page', 15), 100);
+
         return Inertia::render('dashboard/schedules/Index', [
             'schedules' => Schedule::query()
                 ->with('ship')
-                ->when(request('search'), fn ($q, $s) => $q->whereHas('ship', fn ($q) => $q->where('name', 'like', "%{$s}%")))
+                ->when(request('search'), fn ($q, $s) => $q->whereHas('ship', fn ($q) => $q->whereFullText('name', $s . '*', ['mode' => 'boolean'])))
                 ->orderBy('departure_date', 'desc')
-                ->paginate(15)
+                ->paginate($perPage)
+                ->onEachSide(1)
                 ->withQueryString()
                 ->through(fn (Schedule $schedule) => [
                     'uuid' => $schedule->uuid,
                     'ship' => ['uuid' => $schedule->ship->uuid, 'name' => $schedule->ship->name],
-                    'departure_date' => $schedule->departure_date,
-                    'arrival_date' => $schedule->arrival_date,
+                    'departure_date' => $schedule->departure_date?->format('Y-m-d'),
+                    'arrival_date' => $schedule->arrival_date?->format('Y-m-d'),
                     'notes' => $schedule->notes,
                 ]),
         ]);

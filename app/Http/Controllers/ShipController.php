@@ -10,11 +10,14 @@ class ShipController extends Controller
 {
     public function index()
     {
+        $perPage = min((int) request('per_page', 15), 100);
+
         return Inertia::render('dashboard/ships/Index', [
             'ships' => Ship::query()
-                ->when(request('search'), fn ($q, $s) => $q->where('name', 'like', "%{$s}%"))
+                ->when(request('search'), fn ($q, $s) => $q->whereFullText('name', $s . '*', ['mode' => 'boolean']))
                 ->orderBy('name')
-                ->paginate(15)
+                ->paginate($perPage)
+                ->onEachSide(1)
                 ->withQueryString()
                 ->through(fn (Ship $ship) => [
                     'uuid' => $ship->uuid,

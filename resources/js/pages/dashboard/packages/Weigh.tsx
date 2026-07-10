@@ -23,7 +23,7 @@ interface PackageData {
     zone: Zone | null;
 }
 
-interface TimbangProps {
+interface WeighProps {
     package: PackageData;
     tariffPerKg: number;
 }
@@ -50,7 +50,7 @@ function calculatePrice(
     return { volumetric, finalWeight, price, total };
 }
 
-export default function Timbang({ package: pkg, tariffPerKg }: TimbangProps) {
+export default function Weigh({ package: pkg, tariffPerKg }: WeighProps) {
     const alert = useAlert();
 
     const [lengthActual, setLengthActual] = useState(
@@ -102,7 +102,7 @@ export default function Timbang({ package: pkg, tariffPerKg }: TimbangProps) {
             height_actual: String(heightActual),
         };
 
-        router.post(`/dashboard/packages/${pkg.uuid}/timbang`, payload, {
+        router.post(`/dashboard/packages/${pkg.uuid}/weigh`, payload, {
             onSuccess: () => {
                 setSubmitting(false);
                 alert('Data timbangan berhasil disimpan.');
@@ -171,7 +171,7 @@ export default function Timbang({ package: pkg, tariffPerKg }: TimbangProps) {
                                         suffix="cm"
                                     />
                                     {errors.length_actual && (
-                                        <p className="mt-1 text-xs text-[var(--warning)]">
+                                        <p className="mt-1 text-xs text-red-500">
                                             {errors.length_actual}
                                         </p>
                                     )}
@@ -187,7 +187,7 @@ export default function Timbang({ package: pkg, tariffPerKg }: TimbangProps) {
                                         suffix="cm"
                                     />
                                     {errors.width_actual && (
-                                        <p className="mt-1 text-xs text-[var(--warning)]">
+                                        <p className="mt-1 text-xs text-red-500">
                                             {errors.width_actual}
                                         </p>
                                     )}
@@ -203,7 +203,7 @@ export default function Timbang({ package: pkg, tariffPerKg }: TimbangProps) {
                                         suffix="cm"
                                     />
                                     {errors.height_actual && (
-                                        <p className="mt-1 text-xs text-[var(--warning)]">
+                                        <p className="mt-1 text-xs text-red-500">
                                             {errors.height_actual}
                                         </p>
                                     )}
@@ -219,7 +219,7 @@ export default function Timbang({ package: pkg, tariffPerKg }: TimbangProps) {
                                         suffix="kg"
                                     />
                                     {errors.weight_actual && (
-                                        <p className="mt-1 text-xs text-[var(--warning)]">
+                                        <p className="mt-1 text-xs text-red-500">
                                             {errors.weight_actual}
                                         </p>
                                     )}

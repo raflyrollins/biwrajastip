@@ -31,7 +31,9 @@ export default function UsersIndex({ users }: UsersIndexProps) {
         confirm('Yakin ingin menghapus pengguna ini?').then((ok) => {
             if (ok) {
                 router.delete('/dashboard/users/' + uuid, {
-                    onSuccess: () => alert('Pengguna berhasil dihapus.'),
+                    onSuccess: () => {
+ alert('Pengguna berhasil dihapus.'); 
+},
                     onError: (errors) => {
                         const msg = Object.values(errors).flat().join(', ');
                         alert(msg || 'Gagal menghapus pengguna.');
@@ -70,7 +72,7 @@ export default function UsersIndex({ users }: UsersIndexProps) {
                     </div>
                 ) : (
                     <div className="overflow-x-auto border border-[var(--border-default)] bg-[var(--neutral-primary)]">
-                        <table className="w-full text-left text-sm">
+                        <table className="min-w-full text-left text-sm">
                             <thead>
                                 <tr className="border-b border-[var(--border-default)]">
                                     <th className="px-4 py-3 font-medium text-[var(--heading)]">

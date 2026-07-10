@@ -1,10 +1,11 @@
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { Head } from '@inertiajs/react';
 import { CheckCircle, ExternalLink } from 'lucide-react';
 
 import DashboardLayout from '@/components/DashboardLayout';
 import { PaymentEmpty } from '@/components/EmptyIllustrations';
 import EmptyState from '@/components/EmptyState';
+import Pagination from '@/components/ui/Pagination';
 import { useAlert, useConfirm } from '@/contexts/AlertContext';
 import { useCan } from '@/lib/permissions';
 
@@ -31,19 +32,13 @@ interface Payment {
 
 interface PaginatedData<T> {
     data: T[];
-    meta: {
-        current_page: number;
-        last_page: number;
-        per_page: number;
-        total: number;
-        from: number;
-        to: number;
-    };
-    links: {
-        url: string | null;
-        label: string;
-        active: boolean;
-    }[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number;
+    to: number;
+    links: { url: string | null; label: string; active: boolean }[];
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -116,7 +111,7 @@ export default function PaymentsIndex({ payments }: PaymentsIndexProps) {
                 ) : (
                     <>
                         <div className="overflow-x-auto border border-[var(--border-default)] bg-[var(--neutral-primary)]">
-                            <table className="w-full text-left text-sm">
+                            <table className="min-w-full text-left text-sm">
                                 <thead>
                                     <tr className="border-b border-[var(--border-default)] text-[var(--body-subtle)]">
                                         <th className="px-4 py-3 font-medium">
@@ -240,41 +235,7 @@ export default function PaymentsIndex({ payments }: PaymentsIndexProps) {
                             </table>
                         </div>
 
-                        {payments.meta.last_page > 1 && (
-                            <div className="mt-4 flex items-center justify-between text-sm text-[var(--body-subtle)]">
-                                <span>
-                                    Menampilkan {payments.meta.from}-
-                                    {payments.meta.to} dari{' '}
-                                    {payments.meta.total}
-                                </span>
-                                <div className="flex gap-1">
-                                    {payments.links.map((link, i) => {
-                                        if (!link.url) {
-                                            return (
-                                                <span
-                                                    key={i}
-                                                    className="px-3 py-1.5"
-                                                    dangerouslySetInnerHTML={{
-                                                        __html: link.label,
-                                                    }}
-                                                />
-                                            );
-                                        }
-
-                                        return (
-                                            <Link
-                                                key={i}
-                                                href={link.url}
-                                                className="px-3 py-1.5 text-[var(--body)] no-underline transition-colors hover:bg-[var(--neutral-tertiary)]"
-                                                dangerouslySetInnerHTML={{
-                                                    __html: link.label,
-                                                }}
-                                            />
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
+                        <Pagination meta={payments} />
                     </>
                 )}
             </DashboardLayout>

@@ -4,6 +4,7 @@ import { Search, Trash2, Pencil } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ZoneEmpty } from '@/components/EmptyIllustrations';
 import EmptyState from '@/components/EmptyState';
+import Pagination from '@/components/ui/Pagination';
 import { useAlert, useConfirm } from '@/contexts/AlertContext';
 import { useCan } from '@/lib/permissions';
 
@@ -11,21 +12,20 @@ interface Zone {
     uuid: string;
     name: string;
     delivery_fee: string;
-    is_pusat: boolean;
+    shipping_price: string;
+    is_central: boolean;
     description: string | null;
 }
 
 interface PaginatedData<T> {
     data: T[];
-    meta: {
-        current_page: number;
-        last_page: number;
-        per_page: number;
-        total: number;
-        from: number;
-        to: number;
-        links: { url: string | null; label: string; active: boolean }[];
-    };
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number;
+    to: number;
+    links: { url: string | null; label: string; active: boolean }[];
 }
 
 export default function ZonesIndex() {
@@ -33,7 +33,7 @@ export default function ZonesIndex() {
         zones: PaginatedData<Zone>;
     };
     const canCreate = useCan('zones.create');
-    const canEdit = useCan('zones.edit');
+    const canEdit = useCan('zones.update');
     const canDelete = useCan('zones.delete');
     const alert = useAlert();
     const confirm = useConfirm();
@@ -55,7 +55,9 @@ export default function ZonesIndex() {
 
         if (ok) {
             router.delete('/dashboard/zones/' + zone.uuid, {
-                onSuccess: () => alert('Zona berhasil dihapus.'),
+                onSuccess: () => {
+ alert('Zona berhasil dihapus.'); 
+},
             });
         }
     }
@@ -104,14 +106,17 @@ export default function ZonesIndex() {
                 ) : (
                     <>
                         <div className="overflow-x-auto border border-[var(--border-default)] bg-[var(--neutral-primary)]">
-                            <table className="w-full text-left text-sm">
+                            <table className="min-w-full text-left text-sm">
                                 <thead>
                                     <tr className="border-b border-[var(--border-default)]">
                                         <th className="px-4 py-3 font-medium text-[var(--heading)]">
                                             Nama
                                         </th>
                                         <th className="px-4 py-3 font-medium text-[var(--heading)]">
-                                            Biaya Kirim
+                                            Harga Kirim (kg)
+                                        </th>
+                                        <th className="px-4 py-3 font-medium text-[var(--heading)]">
+                                            Biaya Antar
                                         </th>
                                         <th className="px-4 py-3 font-medium text-[var(--heading)]">
                                             Pusat
@@ -138,11 +143,17 @@ export default function ZonesIndex() {
                                             <td className="px-4 py-3 text-[var(--body)]">
                                                 Rp{' '}
                                                 {Number(
+                                                    zone.shipping_price,
+                                                ).toLocaleString('id-ID')}
+                                            </td>
+                                            <td className="px-4 py-3 text-[var(--body)]">
+                                                Rp{' '}
+                                                {Number(
                                                     zone.delivery_fee,
                                                 ).toLocaleString('id-ID')}
                                             </td>
                                             <td className="px-4 py-3">
-                                                {zone.is_pusat ? (
+                                                {zone.is_central ? (
                                                     <span className="bg-[var(--brand-softer)] px-2 py-1 text-xs font-medium text-[var(--brand-strong)]">
                                                         Pusat
                                                     </span>
@@ -196,46 +207,7 @@ export default function ZonesIndex() {
                             </table>
                         </div>
 
-                        {zones.meta.last_page > 1 && (
-                            <div className="mt-4 flex items-center justify-between text-sm text-[var(--body-subtle)]">
-                                <span>
-                                    Menampilkan {zones.meta.from}–
-                                    {zones.meta.to} dari {zones.meta.total}
-                                </span>
-                                <div className="flex items-center gap-1">
-                                    {zones.meta.links.map((link, i) => {
-                                        if (link.url === null) {
-                                            return (
-                                                <span
-                                                    key={i}
-                                                    className="flex size-8 cursor-not-allowed items-center justify-center border border-[var(--border-default)] text-[var(--body-subtle)]"
-                                                    dangerouslySetInnerHTML={{
-                                                        __html: link.label,
-                                                    }}
-                                                />
-                                            );
-                                        }
-
-                                        return (
-                                            <Link
-                                                key={i}
-                                                href={link.url}
-                                                className={`flex size-8 items-center justify-center border text-sm no-underline transition-colors ${
-                                                    link.active
-                                                        ? 'border-[var(--brand)] bg-[var(--brand)] text-[var(--on-brand)]'
-                                                        : 'border-[var(--border-default)] text-[var(--body)] hover:bg-[var(--neutral-tertiary)]'
-                                                }`}
-                                                dangerouslySetInnerHTML={{
-                                                    __html: link.label,
-                                                }}
-                                                preserveState
-                                                preserveScroll
-                                            />
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
+                        <Pagination meta={zones} />
                     </>
                 )}
             </DashboardLayout>

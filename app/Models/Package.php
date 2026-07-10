@@ -143,10 +143,10 @@ class Package extends Model
 
     public function calculateFinalWeight(): float
     {
-        $actual = (float) $this->weight_actual;
+        $actualGrams = (float) $this->weight_actual * 1000;
         $volumetric = $this->calculateVolumetricWeight();
 
-        return max($actual, $volumetric);
+        return max($actualGrams, $volumetric);
     }
 
     public function calculatePrice(float $tariffPerKg): float

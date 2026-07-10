@@ -1,0 +1,586 @@
+{
+	"info": {
+		"name": "BiwraHub API",
+		"description": "Collection for testing BiwraJastip BiwraHub API endpoints.\n\n## Setup\n1. Run seeder: `php artisan db:seed --class=BiwraHubSeeder`\n2. Run collection: Login first → token auto-set → test all endpoints\n\n## Test Data (from seeder)\n- **Login**: `staff.surabaya@biwrajastip.com` / `password`\n- **Waiting Collection**: `SPX0000000001` – `SPX0000000005`\n- **Paid/Bagging**: `JNT0000000101`, `JNT0000000102`, `JNT0000000103`\n- **Sorting**: `NINJA0000000401` – `NINJA0000000403`\n- **Ending**: `LION0000000500`, `TIKI0000000501`",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://biwrajastip.test/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "bag_code",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "batch_code",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login - Staff Surabaya",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('token', json.token);",
+									"    console.log('Token set:', json.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"staff.surabaya@biwrajastip.com\",\n  \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/login",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login - Staff Ende",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('token', json.token);",
+									"    console.log('Token set:', json.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"staff.ende@biwrajastip.com\",\n  \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/login",
+							"host": ["{{base_url}}"],
+							"path": ["v1", "login"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Scan",
+			"item": [
+				{
+					"name": "Scan Package (collecting module)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/biwrahub/scan/SPX0000000001?module=collecting",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "scan", "SPX0000000001"],
+							"query": [
+								{
+									"key": "module",
+									"value": "collecting"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Scan Package (bagging module)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/biwrahub/scan/JNT0000000101?module=bagging",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "scan", "JNT0000000101"],
+							"query": [
+								{
+									"key": "module",
+									"value": "bagging"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Scan Biwra Code (bagging module)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/biwrahub/scan/BWR00000101?module=bagging",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "scan", "BWR00000101"],
+							"query": [
+								{
+									"key": "module",
+									"value": "bagging"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Scan Invalid Code",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/biwrahub/scan/INVALID123",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "scan", "INVALID123"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Collecting",
+			"item": [
+				{
+					"name": "Collect packages",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tracking_numbers\": [\n    \"SPX0000000001\",\n    \"SPX0000000002\",\n    \"SPX0000000003\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/biwrahub/collecting",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "collecting"]
+						}
+					}
+				},
+				{
+					"name": "Collect - invalid status",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tracking_numbers\": [\n    \"JNT0000000101\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/biwrahub/collecting",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "collecting"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Bagging",
+			"item": [
+				{
+					"name": "Bag packages",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tracking_numbers\": [\n    \"JNT0000000101\",\n    \"JNT0000000102\",\n    \"JNT0000000103\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/biwrahub/bagging",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "bagging"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Batching",
+			"item": [
+				{
+					"name": "Get options (ships + schedules)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var json = pm.response.json();",
+									"    if (json.ships.length > 0) {",
+									"        pm.collectionVariables.set('ship_uuid', json.ships[0].uuid);",
+									"    }",
+									"    if (json.schedules.length > 0) {",
+									"        pm.collectionVariables.set('schedule_uuid', json.schedules[0].uuid);",
+									"    }",
+									"    console.log('Options loaded');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/biwrahub/options",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "options"]
+						}
+					}
+				},
+				{
+					"name": "Create batch",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bag_codes\": [\"{{bag_code}}\"],\n  \"ship_id\": \"{{ship_uuid}}\",\n  \"schedule_id\": \"{{schedule_uuid}}\",\n  \"departure_date\": \"2026-07-20\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/biwrahub/batching",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "batching"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Pipeline",
+			"item": [
+				{
+					"name": "Send to Port",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"batch_code\": \"{{batch_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/biwrahub/send-to-port",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "send-to-port"]
+						}
+					}
+				},
+				{
+					"name": "Arrive at Port",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"batch_code\": \"{{batch_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/biwrahub/arrive-at-port",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "arrive-at-port"]
+						}
+					}
+				},
+				{
+					"name": "Ship Depart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"batch_code\": \"{{batch_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/biwrahub/ship-depart",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "ship-depart"]
+						}
+					}
+				},
+				{
+					"name": "Ship Arrive",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"batch_code\": \"{{batch_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/biwrahub/ship-arrive",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "ship-arrive"]
+						}
+					}
+				},
+				{
+					"name": "Unbatching",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"batch_code\": \"{{batch_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/biwrahub/unbatching",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "unbatching"]
+						}
+					}
+				},
+				{
+					"name": "Unbagging",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bag_code\": \"{{bag_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/biwrahub/unbagging",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "unbagging"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Sorting & Ending",
+			"item": [
+				{
+					"name": "Sorting - ready for pickup",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tracking_number\": \"NINJA0000000401\",\n  \"result\": \"ready_for_pickup\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/biwrahub/sorting",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "sorting"]
+						}
+					}
+				},
+				{
+					"name": "Sorting - in delivery",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tracking_number\": \"NINJA0000000402\",\n  \"result\": \"in_delivery\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/biwrahub/sorting",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "sorting"]
+						}
+					}
+				},
+				{
+					"name": "Ending - complete delivery",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tracking_number\": \"LION0000000500\",\n  \"recipient_photo\": \"data:image/jpeg;base64,/9j/4AAQSkZJRg...\",\n  \"recipient_name\": \"Budi Santoso\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/biwrahub/ending",
+							"host": ["{{base_url}}"],
+							"path": ["biwrahub", "ending"]
+						}
+					}
+				}
+			]
+		}
+	]
+}

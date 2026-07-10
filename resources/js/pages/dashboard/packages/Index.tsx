@@ -1,13 +1,14 @@
 import { Link, router } from '@inertiajs/react';
 import { Head } from '@inertiajs/react';
-import { Edit, Plus, Trash2, Weight } from 'lucide-react';
+import { Edit, Plus, Printer, ReceiptText, Search, Trash2, Weight } from 'lucide-react';
+import { useState } from 'react';
 
 import DashboardLayout from '@/components/DashboardLayout';
 import { PackageEmpty } from '@/components/EmptyIllustrations';
 import EmptyState from '@/components/EmptyState';
+import Pagination from '@/components/ui/Pagination';
 import { useAlert, useConfirm } from '@/contexts/AlertContext';
 import { useCan } from '@/lib/permissions';
-import { cn } from '@/lib/utils';
 
 interface Zone {
     uuid: string;
@@ -17,6 +18,7 @@ interface Zone {
 interface Package {
     uuid: string;
     tracking_number: string;
+    tracking_number_biwra: string | null;
     receiver_name: string;
     status: string;
     weight_estimated: string | null;
@@ -30,19 +32,13 @@ interface Package {
 
 interface PaginatedData<T> {
     data: T[];
-    meta: {
-        current_page: number;
-        last_page: number;
-        per_page: number;
-        total: number;
-        from: number;
-        to: number;
-    };
-    links: {
-        url: string | null;
-        label: string;
-        active: boolean;
-    }[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number;
+    to: number;
+    links: { url: string | null; label: string; active: boolean }[];
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -51,13 +47,16 @@ const STATUS_LABELS: Record<string, string> = {
     waiting_for_payment: 'Menunggu Pembayaran',
     paid: 'Lunas',
     bagging: 'Packing',
-    berangkat_ke_pelabuhan: 'Berangkat ke Pelabuhan',
+    batched: 'Dalam Batch',
+    heading_to_port: 'Berangkat ke Pelabuhan',
+    at_port: 'Di Pelabuhan',
     in_transit: 'Dalam Perjalanan',
     arrived: 'Tiba',
+    arrived_at_warehouse: 'Barang Tiba di Gudang',
     ready_for_sorting: 'Siap Disortir',
-    siap_diambil: 'Siap Diambil',
-    dalam_pengantaran: 'Dalam Pengantaran',
-    selesai: 'Selesai',
+    ready_for_pickup: 'Siap Diambil',
+    in_delivery: 'Dalam Pengantaran',
+    completed: 'Selesai',
 };
 
 function getStatusColor(status: string): string {
@@ -65,8 +64,8 @@ function getStatusColor(status: string): string {
         waiting_for_collection: 'var(--warning)',
         waiting_for_payment: 'var(--warning)',
         paid: 'var(--success)',
-        selesai: 'var(--success)',
-        siap_diambil: 'var(--success)',
+        completed: 'var(--success)',
+        ready_for_pickup: 'var(--success)',
     };
 
     return colors[status] ?? 'var(--fg-brand-strong)';
@@ -81,8 +80,11 @@ export default function PackagesIndex({ packages }: PackagesIndexProps) {
     const canDelete = useCan('packages.delete');
     const canUpdate = useCan('packages.update');
     const canCollectedScope = useCan('packages.scope.collected');
+    const canPay = useCan('payments.create');
+    const canPrint = useCan('packages.print');
     const alert = useAlert();
     const confirm = useConfirm();
+    const [search, setSearch] = useState('');
 
     async function handleDelete(pkg: Package) {
         const confirmed = await confirm(
@@ -100,19 +102,46 @@ export default function PackagesIndex({ packages }: PackagesIndexProps) {
         });
     }
 
+    function handleSearch(e: React.FormEvent) {
+        e.preventDefault();
+        router.get(
+            '/dashboard/packages',
+            { search },
+            { preserveState: true, replace: true },
+        );
+    }
+
     return (
         <>
             <Head title="Paket" />
 
             <DashboardLayout title="Paket">
-                <div className="mb-6 flex items-center justify-between">
-                    <p className="text-sm text-[var(--body-subtle)]">
-                        Daftar semua paket
-                    </p>
+                <div className="mb-6 flex items-center justify-between gap-4">
+                    <form onSubmit={handleSearch} className="flex flex-1 items-center gap-2">
+                        <div className="relative flex-1 max-w-md">
+                            <Search
+                                size={16}
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--body-subtle)]"
+                            />
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Cari tracking, penerima, pengirim..."
+                                className="w-full border border-[var(--border-default)] bg-[var(--neutral-primary)] py-2.5 pl-10 pr-3 text-sm text-[var(--body)] outline-none placeholder:text-[var(--body-subtle)] focus:border-[var(--brand)]"
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            className="cursor-pointer border border-[var(--border-default)] bg-[var(--neutral-primary)] px-4 py-2.5 text-sm text-[var(--body)] transition-colors hover:bg-[var(--neutral-tertiary)]"
+                        >
+                            Cari
+                        </button>
+                    </form>
                     {canCreate && (
                         <Link
                             href="/dashboard/packages/create"
-                            className="inline-flex cursor-pointer items-center gap-2 border-none bg-[var(--brand)] px-6 py-3 text-sm font-medium text-[var(--on-brand)] no-underline transition-colors hover:bg-[var(--brand-strong)]"
+                            className="inline-flex shrink-0 cursor-pointer items-center gap-2 border-none bg-[var(--brand)] px-6 py-3 text-sm font-medium text-[var(--on-brand)] no-underline transition-colors hover:bg-[var(--brand-strong)]"
                         >
                             <Plus size={16} />
                             Buat Paket
@@ -131,7 +160,7 @@ export default function PackagesIndex({ packages }: PackagesIndexProps) {
                 ) : (
                     <>
                         <div className="overflow-x-auto border border-[var(--border-default)] bg-[var(--neutral-primary)]">
-                            <table className="w-full text-left text-sm">
+                            <table className="min-w-full text-left text-sm">
                                 <thead>
                                     <tr className="border-b border-[var(--border-default)] text-[var(--body-subtle)]">
                                         <th className="px-4 py-3 font-medium">
@@ -217,7 +246,7 @@ export default function PackagesIndex({ packages }: PackagesIndexProps) {
                                                         pkg.status ===
                                                             'collected' && (
                                                             <Link
-                                                                href={`/dashboard/packages/${pkg.uuid}/timbang`}
+                                                                href={`/dashboard/packages/${pkg.uuid}/weigh`}
                                                                 className="inline-flex cursor-pointer items-center gap-1 border border-[var(--border-default)] bg-[var(--neutral-primary)] px-2.5 py-1.5 text-xs text-[var(--body)] no-underline transition-colors hover:bg-[var(--neutral-tertiary)]"
                                                             >
                                                                 <Weight
@@ -226,15 +255,43 @@ export default function PackagesIndex({ packages }: PackagesIndexProps) {
                                                                 Timbang
                                                             </Link>
                                                         )}
-                                                    {canUpdate && (
-                                                        <Link
-                                                            href={`/dashboard/packages/${pkg.uuid}/edit`}
-                                                            className="inline-flex cursor-pointer items-center gap-1 border border-[var(--border-default)] bg-[var(--neutral-primary)] px-2.5 py-1.5 text-xs text-[var(--body)] no-underline transition-colors hover:bg-[var(--neutral-tertiary)]"
-                                                        >
-                                                            <Edit size={14} />
-                                                            Edit
-                                                        </Link>
-                                                    )}
+                                                    {canUpdate &&
+                                                        pkg.status ===
+                                                            'waiting_for_collection' && (
+                                                            <Link
+                                                                href={`/dashboard/packages/${pkg.uuid}/edit`}
+                                                                className="inline-flex cursor-pointer items-center gap-1 border border-[var(--border-default)] bg-[var(--neutral-primary)] px-2.5 py-1.5 text-xs text-[var(--body)] no-underline transition-colors hover:bg-[var(--neutral-tertiary)]"
+                                                            >
+                                                                <Edit size={14} />
+                                                                Edit
+                                                            </Link>
+                                                        )}
+                                                    {canPay &&
+                                                        pkg.status ===
+                                                            'waiting_for_payment' && (
+                                                            <Link
+                                                                href="/dashboard/payments/create"
+                                                                className="inline-flex cursor-pointer items-center gap-1 border border-[var(--border-default)] bg-[var(--brand)] px-2.5 py-1.5 text-xs font-medium text-[var(--on-brand)] no-underline transition-colors hover:bg-[var(--brand-strong)]"
+                                                            >
+                                                                <ReceiptText
+                                                                    size={14}
+                                                                />
+                                                                Bayar
+                                                            </Link>
+                                                        )}
+                                                    {canPrint &&
+                                                        pkg.status ===
+                                                            'paid' && (
+                                                            <Link
+                                                                href={`/dashboard/packages/${pkg.uuid}/receipt`}
+                                                                className="inline-flex cursor-pointer items-center gap-1 border border-[var(--border-default)] bg-[var(--neutral-primary)] px-2.5 py-1.5 text-xs text-[var(--body)] no-underline transition-colors hover:bg-[var(--neutral-tertiary)]"
+                                                            >
+                                                                <Printer
+                                                                    size={14}
+                                                                />
+                                                                Cetak Resi
+                                                            </Link>
+                                                        )}
                                                     {canDelete && (
                                                         <button
                                                             type="button"
@@ -257,51 +314,7 @@ export default function PackagesIndex({ packages }: PackagesIndexProps) {
                             </table>
                         </div>
 
-                        {packages.meta.last_page > 1 && (
-                            <div className="mt-4 flex items-center justify-between text-sm text-[var(--body-subtle)]">
-                                <span>
-                                    Menampilkan {packages.meta.from}-
-                                    {packages.meta.to} dari{' '}
-                                    {packages.meta.total}
-                                </span>
-                                <div className="flex gap-1">
-                                    {packages.links.map((link, i) => {
-                                        if (!link.url) {
-                                            return (
-                                                <span
-                                                    key={i}
-                                                    className={cn(
-                                                        'px-3 py-1.5',
-                                                        link.active &&
-                                                            'bg-[var(--brand)] text-[var(--on-brand)]',
-                                                    )}
-                                                    dangerouslySetInnerHTML={{
-                                                        __html: link.label,
-                                                    }}
-                                                />
-                                            );
-                                        }
-
-                                        return (
-                                            <Link
-                                                key={i}
-                                                href={link.url}
-                                                className={cn(
-                                                    'px-3 py-1.5 no-underline transition-colors hover:bg-[var(--neutral-tertiary)]',
-                                                    link.active &&
-                                                        'bg-[var(--brand)] text-[var(--on-brand)] hover:bg-[var(--brand-strong)]',
-                                                    !link.active &&
-                                                        'text-[var(--body)]',
-                                                )}
-                                                dangerouslySetInnerHTML={{
-                                                    __html: link.label,
-                                                }}
-                                            />
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
+                        <Pagination meta={packages} />
                     </>
                 )}
             </DashboardLayout>

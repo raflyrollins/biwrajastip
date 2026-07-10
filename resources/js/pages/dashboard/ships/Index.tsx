@@ -4,6 +4,7 @@ import { Search, Trash2, Pencil } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ShipEmpty } from '@/components/EmptyIllustrations';
 import EmptyState from '@/components/EmptyState';
+import Pagination from '@/components/ui/Pagination';
 import { useAlert, useConfirm } from '@/contexts/AlertContext';
 import { useCan } from '@/lib/permissions';
 
@@ -16,15 +17,13 @@ interface Ship {
 
 interface PaginatedData<T> {
     data: T[];
-    meta: {
-        current_page: number;
-        last_page: number;
-        per_page: number;
-        total: number;
-        from: number;
-        to: number;
-        links: { url: string | null; label: string; active: boolean }[];
-    };
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number;
+    to: number;
+    links: { url: string | null; label: string; active: boolean }[];
 }
 
 export default function ShipsIndex() {
@@ -54,7 +53,9 @@ export default function ShipsIndex() {
 
         if (ok) {
             router.delete('/dashboard/ships/' + ship.uuid, {
-                onSuccess: () => alert('Kapal berhasil dihapus.'),
+                onSuccess: () => {
+ alert('Kapal berhasil dihapus.'); 
+},
             });
         }
     }
@@ -103,7 +104,7 @@ export default function ShipsIndex() {
                 ) : (
                     <>
                         <div className="overflow-x-auto border border-[var(--border-default)] bg-[var(--neutral-primary)]">
-                            <table className="w-full text-left text-sm">
+                            <table className="min-w-full text-left text-sm">
                                 <thead>
                                     <tr className="border-b border-[var(--border-default)]">
                                         <th className="px-4 py-3 font-medium text-[var(--heading)]">
@@ -186,46 +187,7 @@ export default function ShipsIndex() {
                             </table>
                         </div>
 
-                        {ships.meta.last_page > 1 && (
-                            <div className="mt-4 flex items-center justify-between text-sm text-[var(--body-subtle)]">
-                                <span>
-                                    Menampilkan {ships.meta.from}–
-                                    {ships.meta.to} dari {ships.meta.total}
-                                </span>
-                                <div className="flex items-center gap-1">
-                                    {ships.meta.links.map((link, i) => {
-                                        if (link.url === null) {
-                                            return (
-                                                <span
-                                                    key={i}
-                                                    className="flex size-8 cursor-not-allowed items-center justify-center border border-[var(--border-default)] text-[var(--body-subtle)]"
-                                                    dangerouslySetInnerHTML={{
-                                                        __html: link.label,
-                                                    }}
-                                                />
-                                            );
-                                        }
-
-                                        return (
-                                            <Link
-                                                key={i}
-                                                href={link.url}
-                                                className={`flex size-8 items-center justify-center border text-sm no-underline transition-colors ${
-                                                    link.active
-                                                        ? 'border-[var(--brand)] bg-[var(--brand)] text-[var(--on-brand)]'
-                                                        : 'border-[var(--border-default)] text-[var(--body)] hover:bg-[var(--neutral-tertiary)]'
-                                                }`}
-                                                dangerouslySetInnerHTML={{
-                                                    __html: link.label,
-                                                }}
-                                                preserveState
-                                                preserveScroll
-                                            />
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
+                        <Pagination meta={ships} />
                     </>
                 )}
             </DashboardLayout>

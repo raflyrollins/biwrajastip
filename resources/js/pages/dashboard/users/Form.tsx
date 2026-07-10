@@ -117,7 +117,7 @@ export default function UsersForm() {
                                 className="w-full border border-[var(--border-default)] bg-[var(--neutral-primary)] px-3 py-2.5 text-sm text-[var(--heading)] transition-colors outline-none placeholder:text-[var(--body-subtle)] focus:border-[var(--brand)]"
                             />
                             {errors.name && (
-                                <p className="mt-1 text-xs text-[var(--danger)]">
+                                <p className="mt-1 text-xs text-red-500">
                                     {errors.name}
                                 </p>
                             )}
@@ -135,7 +135,7 @@ export default function UsersForm() {
                                 className="w-full border border-[var(--border-default)] bg-[var(--neutral-primary)] px-3 py-2.5 text-sm text-[var(--heading)] transition-colors outline-none placeholder:text-[var(--body-subtle)] focus:border-[var(--brand)]"
                             />
                             {errors.email && (
-                                <p className="mt-1 text-xs text-[var(--danger)]">
+                                <p className="mt-1 text-xs text-red-500">
                                     {errors.email}
                                 </p>
                             )}
@@ -152,7 +152,7 @@ export default function UsersForm() {
                                 className="w-full border border-[var(--border-default)] bg-[var(--neutral-primary)] px-3 py-2.5 text-sm text-[var(--heading)] transition-colors outline-none placeholder:text-[var(--body-subtle)] focus:border-[var(--brand)]"
                             />
                             {errors.phone && (
-                                <p className="mt-1 text-xs text-[var(--danger)]">
+                                <p className="mt-1 text-xs text-red-500">
                                     {errors.phone}
                                 </p>
                             )}
@@ -169,7 +169,7 @@ export default function UsersForm() {
                                 placeholder="Pilih role..."
                             />
                             {errors.role && (
-                                <p className="mt-1 text-xs text-[var(--danger)]">
+                                <p className="mt-1 text-xs text-red-500">
                                     {errors.role}
                                 </p>
                             )}
@@ -188,7 +188,7 @@ export default function UsersForm() {
                                 className="w-full border border-[var(--border-default)] bg-[var(--neutral-primary)] px-3 py-2.5 text-sm text-[var(--heading)] transition-colors outline-none placeholder:text-[var(--body-subtle)] focus:border-[var(--brand)]"
                             />
                             {errors.password && (
-                                <p className="mt-1 text-xs text-[var(--danger)]">
+                                <p className="mt-1 text-xs text-red-500">
                                     {errors.password}
                                 </p>
                             )}
@@ -208,6 +208,11 @@ export default function UsersForm() {
                                     required={!isEdit}
                                     className="w-full border border-[var(--border-default)] bg-[var(--neutral-primary)] px-3 py-2.5 text-sm text-[var(--heading)] transition-colors outline-none placeholder:text-[var(--body-subtle)] focus:border-[var(--brand)]"
                                 />
+                                {errors.password_confirmation && (
+                                    <p className="mt-1 text-xs text-red-500">
+                                        {errors.password_confirmation}
+                                    </p>
+                                )}
                             </div>
                         )}
 

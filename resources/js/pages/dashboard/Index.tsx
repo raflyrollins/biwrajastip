@@ -86,7 +86,7 @@ function getScopeDescription(roleName: string): string {
         staff_surabaya:
             'Anda melihat paket yang sudah collected hingga bagging. Bag & Batch yang Anda buat sendiri.',
         staff_ende:
-            'Anda melihat paket dalam transit (berangkat_ke_pelabuhan hingga selesai). Bag & Batch yang sudah di-unbatch/unbag.',
+            'Anda melihat paket dalam transit (heading_to_port hingga completed). Bag & Batch yang sudah di-unbatch/unbag.',
         admin: 'Anda memiliki akses ke semua data tanpa filter.',
         owner: 'Anda memiliki akses ke semua data dan laporan.',
     };

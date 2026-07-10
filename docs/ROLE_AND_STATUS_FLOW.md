@@ -157,13 +157,16 @@ Scope membatasi data apa yang bisa dilihat/diakses oleh suatu role. Scope diperi
 | `waiting_for_payment`    | Berat & dimensi aktual sudah diinput, menunggu pembayaran    | System         | Staff input weight/dimensions      |
 | `paid`                   | Pembayaran sudah diverifikasi                                | Admin          | Verify payment                     |
 | `bagging`                | Sedang dimasukkan ke dalam Bag                               | System         | BiwraHub Bagging                   |
-| `berangkat_ke_pelabuhan` | Bag sudah masuk Batch, menuju pelabuhan                      | System         | BiwraHub Batching                  |
+| `batched`                | Bag sudah masuk Batch, siap di gudang Surabaya               | System         | BiwraHub Batching                  |
+| `heading_to_port`        | Dalam perjalanan dari gudang ke pelabuhan                    | System         | BiwraHub Send to Port              |
+| `at_port`                | Sudah di pelabuhan, menunggu kapal                           | System         | BiwraHub Arrive at Port            |
 | `in_transit`             | Kapal sedang berlayar ke Ende                                | System         | Kapal Berangkat (batch → departed) |
-| `arrived`                | Kapal sudah tiba di Ende                                     | System         | Kapal Sampai (batch → arrived)     |
+| `arrived`                | Kapal sudah tiba di Ende, masih di pelabuhan                 | System         | Kapal Sampai (batch → arrived)     |
+| `arrived_at_warehouse`   | Barang sudah di gudang Ende                                  | System         | BiwraHub Unbatching                |
 | `ready_for_sorting`      | Paket sudah dikeluarkan dari Bag, siap disortir              | System         | BiwraHub Unbagging                 |
-| `siap_diambil`           | Paket siap diambil customer di pusat Ende                    | Staff Ende     | BiwraHub Sorting (zona pusat)      |
-| `dalam_pengantaran`      | Paket sedang diantar ke luar kota                            | Staff Ende     | BiwraHub Sorting (zona luar)       |
-| `selesai`                | Paket sudah diterima customer                                | Staff Ende     | BiwraHub Ending                    |
+| `ready_for_pickup`       | Paket siap diambil customer di pusat Ende                    | Staff Ende     | BiwraHub Sorting (zona pusat)      |
+| `in_delivery`            | Paket sedang diantar ke luar kota                            | Staff Ende     | BiwraHub Sorting (zona luar)       |
+| `completed`              | Paket sudah diterima customer                                | Staff Ende     | BiwraHub Ending                    |
 
 ### 4.2 Bag Status
 
@@ -175,12 +178,12 @@ Scope membatasi data apa yang bisa dilihat/diakses oleh suatu role. Scope diperi
 
 ### 4.3 Batch Status
 
-| Status      | Arti                                | Set Oleh       | Trigger                    |
-| ----------- | ----------------------------------- | -------------- | -------------------------- |
-| `preparing` | Batch sedang dipersiapkan           | System         | BiwraHub Batching          |
-| `departed`  | Kapal sudah berangkat dari Surabaya | Staff Surabaya | Kapal Berangkat (BiwraHub) |
-| `arrived`   | Kapal sudah tiba di Ende            | Staff Ende     | Kapal Sampai (BiwraHub)    |
-| `unbatched` | Batch sudah dibongkar, bag dirilis  | Staff Ende     | BiwraHub Unbatching        |
+| Status      | Arti                                | Set Oleh       | Trigger                  |
+| ----------- | ----------------------------------- | -------------- | ------------------------ |
+| `preparing` | Batch sedang dipersiapkan           | System         | BiwraHub Batching        |
+| `departed`  | Kapal sudah berangkat dari Surabaya | Staff Surabaya | BiwraHub Ship Depart     |
+| `arrived`   | Kapal sudah tiba di Ende            | Staff Ende     | BiwraHub Ship Arrive     |
+| `unbatched` | Batch sudah dibongkar, bag dirilis  | Staff Ende     | BiwraHub Unbatching      |
 
 ---
 
@@ -216,17 +219,32 @@ Scope membatasi data apa yang bisa dilihat/diakses oleh suatu role. Scope diperi
                                │ [BiwraHub] Batching
                                ▼
                     ┌──────────────────────────┐
-                    │ berangkat_ke_pelabuhan    │  ← Masuk batch, ke pelabuhan
+                    │        batched            │  ← Masuk batch, di gudang SBY
                     └──────────┬───────────────┘
-                               │ [BiwraHub] Kapal Berangkat
+                               │ [BiwraHub] Send to Port
+                               ▼
+                    ┌──────────────────────────┐
+                    │     heading_to_port       │  ← Menuju pelabuhan
+                    └──────────┬───────────────┘
+                               │ [BiwraHub] Arrive at Port
+                               ▼
+                    ┌──────────────────────────┐
+                    │        at_port            │  ← Di pelabuhan, nunggu kapal
+                    └──────────┬───────────────┘
+                               │ [BiwraHub] Ship Depart
                                ▼
                     ┌──────────────────────────┐
                     │       in_transit          │  ← Di atas kapal
                     └──────────┬───────────────┘
-                               │ [BiwraHub] Kapal Sampai
+                               │ [BiwraHub] Ship Arrive
                                ▼
                     ┌──────────────────────────┐
-                    │        arrived            │  ← Tiba di Ende
+                    │        arrived            │  ← Tiba di pelabuhan Ende
+                    └──────────┬───────────────┘
+                               │ [BiwraHub] Unbatching
+                               ▼
+                    ┌──────────────────────────┐
+                    │  arrived_at_warehouse     │  ← Barang di gudang Ende
                     └──────────┬───────────────┘
                                │ [BiwraHub] Unbagging
                                ▼
@@ -237,15 +255,15 @@ Scope membatasi data apa yang bisa dilihat/diakses oleh suatu role. Scope diperi
                     ┌──────────┴──────────┐
                     ▼                     ▼
         ┌─────────────────────┐  ┌─────────────────────┐
-        │    siap_diambil     │  │  dalam_pengantaran   │
-        │   (zona pusat)      │  │  (zona luar kota)    │
+        │   ready_for_pickup  │  │     in_delivery      │
+        │   (zona central)    │  │  (zona luar kota)    │
         └──────────┬──────────┘  └──────────┬──────────┘
                    │                        │
                    └──────────┬─────────────┘
                               │ [BiwraHub] Ending
                               ▼
                     ┌──────────────────────────┐
-                    │        selesai            │  ← Customer terima barang
+                    │       completed           │  ← Customer terima barang
                     └──────────────────────────┘
 ```
 
@@ -261,10 +279,10 @@ Scope membatasi data apa yang bisa dilihat/diakses oleh suatu role. Scope diperi
 ### 5.3 Batch Lifecycle
 
 ```
-  [Batching]    [Kapal Berangkat]   [Kapal Sampai]   [Unbatching]
-  ┌─────────┐    ┌─────────┐        ┌─────────┐       ┌─────────┐
-  │preparing│ ─→ │departed │ ─────→ │ arrived │ ────→ │unbatched│
-  └─────────┘    └─────────┘        └─────────┘       └─────────┘
+  [Batching]  [Ship Depart]  [Ship Arrive]  [Unbatching]
+  ┌─────────┐   ┌─────────┐    ┌─────────┐    ┌─────────┐
+  │preparing│ → │departed │ → │ arrived │ → │unbatched│
+  └─────────┘   └─────────┘    └─────────┘    └─────────┘
 ```
 
 ---
@@ -275,16 +293,18 @@ Ini adalah inti dari hubungan antar entitas. Perubahan status di level atas (Bat
 
 ### 6.1 Ringkasan Cascade
 
-| Action          | Platform | Batch                    | Bag                     | Package                                                    |
-| --------------- | -------- | ------------------------ | ----------------------- | ---------------------------------------------------------- |
-| Bagging         | BiwraHub | -                        | `created`               | `paid` → `bagging`                                         |
-| Batching        | BiwraHub | `preparing`              | `created` → `in_batch`  | `bagging` → `berangkat_ke_pelabuhan`                       |
-| Kapal Berangkat | BiwraHub | `preparing` → `departed` | (tidak berubah)         | `berangkat_ke_pelabuhan` → `in_transit`                    |
-| Kapal Sampai    | BiwraHub | `departed` → `arrived`   | (tidak berubah)         | `in_transit` → `arrived`                                   |
-| Unbatching      | BiwraHub | `arrived` → `unbatched`  | (tidak berubah)         | (tidak berubah)                                            |
-| Unbagging       | BiwraHub | -                        | `in_batch` → `unbagged` | `arrived` → `ready_for_sorting`                            |
-| Sorting         | BiwraHub | -                        | -                       | `ready_for_sorting` → `siap_diambil` / `dalam_pengantaran` |
-| Ending          | BiwraHub | -                        | -                       | → `selesai`                                                |
+| Action           | Platform | Batch                    | Bag                     | Package                                                       |
+| ---------------- | -------- | ------------------------ | ----------------------- | ------------------------------------------------------------- |
+| Bagging          | BiwraHub | -                        | `created`               | `paid` → `bagging`                                            |
+| Batching         | BiwraHub | `preparing`              | `created` → `in_batch`  | `bagging` → `batched`                                         |
+| Send to Port     | BiwraHub | (tidak berubah)          | (tidak berubah)         | `batched` → `heading_to_port`                                 |
+| Arrive at Port   | BiwraHub | (tidak berubah)          | (tidak berubah)         | `heading_to_port` → `at_port`                                 |
+| Ship Depart      | BiwraHub | `preparing` → `departed` | (tidak berubah)         | `batched`/`heading_to_port`/`at_port` → `in_transit`          |
+| Ship Arrive      | BiwraHub | `departed` → `arrived`   | (tidak berubah)         | `in_transit` → `arrived`                                      |
+| Unbatching       | BiwraHub | `arrived` → `unbatched`  | (tidak berubah)         | `arrived` → `arrived_at_warehouse`                            |
+| Unbagging        | BiwraHub | -                        | `in_batch` → `unbagged` | `arrived_at_warehouse` → `ready_for_sorting`                  |
+| Sorting          | BiwraHub | -                        | -                       | `ready_for_sorting` → `ready_for_pickup` / `in_delivery`      |
+| Ending           | BiwraHub | -                        | -                       | → `completed`                                                 |
 
 ### 6.2 Detail Cascade
 
@@ -297,19 +317,31 @@ Ini adalah inti dari hubungan antar entitas. Perubahan status di level atas (Bat
 
 #### Batching (Staff SBY via BiwraHub)
 
-- **Package:** `bagging` → `berangkat_ke_pelabuhan`
+- **Package:** `bagging` → `batched`
 - **Bag:** `created` → `in_batch`
 - **Batch:** `preparing`
 - **Catatan:** Staff pilih jadwal kapal, scan QR bag untuk dimasukkan ke batch.
 
-#### Kapal Berangkat (Staff SBY via BiwraHub)
+#### Send to Port (Staff SBY via BiwraHub)
 
-- **Package:** `berangkat_ke_pelabuhan` → `in_transit`
+- **Package:** `batched` → `heading_to_port`
+- **Bag/Batch:** (tidak berubah)
+- **Catatan:** Barang dikirim dari gudang ke pelabuhan.
+
+#### Arrive at Port (Staff SBY via BiwraHub)
+
+- **Package:** `heading_to_port` → `at_port`
+- **Bag/Batch:** (tidak berubah)
+- **Catatan:** Barang tiba di pelabuhan, menunggu kapal.
+
+#### Ship Depart (Staff SBY via BiwraHub)
+
+- **Package:** `batched`/`heading_to_port`/`at_port` → `in_transit`
 - **Bag:** (tidak berubah — tetap `in_batch`)
 - **Batch:** `preparing` → `departed`
 - **Catatan:** Status batch diubah, semua package di dalam batch ikut berubah.
 
-#### Kapal Sampai (Staff Ende via BiwraHub)
+#### Ship Arrive (Staff Ende via BiwraHub)
 
 - **Package:** `in_transit` → `arrived`
 - **Bag:** (tidak berubah — tetap `in_batch`)
@@ -318,27 +350,27 @@ Ini adalah inti dari hubungan antar entitas. Perubahan status di level atas (Bat
 
 #### Unbatching (Staff Ende via BiwraHub)
 
-- **Package:** (tidak berubah — tetap `arrived`)
+- **Package:** `arrived` → `arrived_at_warehouse`
 - **Bag:** (tidak berubah — tetap `in_batch`)
 - **Batch:** `arrived` → `unbatched`
-- **Catatan:** Staff centang bag satu per satu, mencocokkan fisik. Batch selesai, bag dirilis.
+- **Catatan:** Staff centang bag satu per satu, mencocokkan fisik. Barang pindah dari pelabuhan ke gudang.
 
 #### Unbagging (Staff Ende via BiwraHub)
 
-- **Package:** `arrived` → `ready_for_sorting`
+- **Package:** `arrived_at_warehouse` → `ready_for_sorting`
 - **Bag:** `in_batch` → `unbagged`
 - **Batch:** (tidak berubah — tetap `unbatched`)
 - **Catatan:** Staff scan QR bag, centang paket satu per satu.
 
 #### Sorting (Staff Ende via BiwraHub)
 
-- **Package:** `ready_for_sorting` → `siap_diambil` (zona pusat) / `dalam_pengantaran` (zona luar)
+- **Package:** `ready_for_sorting` → `ready_for_pickup` (zona central) / `in_delivery` (zona luar)
 - **Bag/Batch:** (tidak berubah)
 - **Catatan:** Tracking kembali ke per-paket (tidak lagi cascade dari batch).
 
 #### Ending (Staff Ende via BiwraHub)
 
-- **Package:** → `selesai`
+- **Package:** → `completed`
 - **Bag/Batch:** (tidak berubah)
 - **Catatan:** Staff foto customer + nama penerima sebagai bukti.
 
@@ -357,13 +389,16 @@ Customer hanya melihat **satu label status** di paketnya. Mereka tidak perlu tah
 | `waiting_for_payment`    | Menunggu pembayaran                | Silakan lakukan pembayaran                    |
 | `paid`                   | Pembayaran diterima                | Barang akan segera dikirim                    |
 | `bagging`                | Dalam pengemasan                   | Barang sedang dikemas di Surabaya             |
-| `berangkat_ke_pelabuhan` | Dalam perjalanan                   | Barang menuju pelabuhan Surabaya              |
+| `batched`                | Dalam proses                       | Barang sudah siap untuk perjalanan            |
+| `heading_to_port`        | Dalam perjalanan                   | Barang menuju pelabuhan Surabaya              |
+| `at_port`                | Dalam perjalanan                   | Barang di pelabuhan, menunggu kapal           |
 | `in_transit`             | Dalam perjalanan                   | Barang sedang dalam perjalanan laut ke Ende   |
 | `arrived`                | Barang sudah sampai di Ende        | Barang tiba di Ende, menunggu proses bongkar  |
+| `arrived_at_warehouse`   | Barang tiba di gudang Ende         | Barang sudah di gudang, menunggu sortir       |
 | `ready_for_sorting`      | Barang sudah sampai di Ende        | Barang tiba di Ende, menunggu proses sortir   |
-| `siap_diambil`           | Siap diambil                       | Silakan ambil barang di pusat Biwra Ende      |
-| `dalam_pengantaran`      | Dalam pengantaran                  | Barang sedang diantar ke alamat tujuan        |
-| `selesai`                | Selesai                            | Barang sudah diterima                         |
+| `ready_for_pickup`       | Siap diambil                       | Silakan ambil barang di pusat Biwra Ende      |
+| `in_delivery`            | Dalam pengantaran                  | Barang sedang diantar ke alamat tujuan        |
+| `completed`              | Selesai                            | Barang sudah diterima                         |
 
 > **Catatan:** Beberapa status memiliki label customer yang sama (misal `berangkat_ke_pelabuhan`, `in_transit`, `arrived`, `ready_for_sorting` semuanya tampil sebagai "Dalam perjalanan" atau "Barang sudah sampai di Ende"). Ini untuk menyederhanakan informasi yang tidak perlu diketahui customer.
 
@@ -387,17 +422,19 @@ Action tertentu hanya bisa dilakukan jika memenuhi kondisi status tertentu, sela
 
 Semua action di BiwraHub (mobile app internal) menggunakan API endpoint.
 
-| Action          | Role           | Permission Check                               | Status Change (Package → Bag → Batch)                                                          |
-| --------------- | -------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Collecting      | Staff Surabaya | `packages.update` + `packages.scope.collected` | `waiting_for_collection` → `collected`                                                         |
-| Bagging         | Staff Surabaya | `bags.create`                                  | Package: `paid` → `bagging`, Bag: `created`                                                    |
-| Batching        | Staff Surabaya | `batches.create`                               | Package: `bagging` → `berangkat_ke_pelabuhan`, Bag: `created` → `in_batch`, Batch: `preparing` |
-| Kapal Berangkat | Staff Surabaya | `batches.update`                               | Package: `berangkat_ke_pelabuhan` → `in_transit`, Batch: `preparing` → `departed`              |
-| Kapal Sampai    | Staff Ende     | `batches.update`                               | Package: `in_transit` → `arrived`, Batch: `departed` → `arrived`                               |
-| Unbatching      | Staff Ende     | `batches.update`                               | Batch: `arrived` → `unbatched`                                                                 |
-| Unbagging       | Staff Ende     | `bags.update`                                  | Package: `arrived` → `ready_for_sorting`, Bag: `in_batch` → `unbagged`                         |
-| Sorting         | Staff Ende     | `packages.update`                              | Package: `ready_for_sorting` → `siap_diambil` / `dalam_pengantaran`                            |
-| Ending          | Staff Ende     | `packages.update`                              | Package: → `selesai`                                                                           |
+| Action           | Role           | Permission Check                               | Status Change (Package → Bag → Batch)                                                          |
+| ---------------- | -------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Collecting       | Staff Surabaya | `packages.update` + `packages.scope.collected` | `waiting_for_collection` → `collected`                                                         |
+| Bagging          | Staff Surabaya | `bags.create`                                  | Package: `paid` → `bagging`, Bag: `created`                                                    |
+| Batching         | Staff Surabaya | `batches.create`                               | Package: `bagging` → `batched`, Bag: `created` → `in_batch`, Batch: `preparing`                |
+| Send to Port     | Staff Surabaya | `batches.update`                               | Package: `batched` → `heading_to_port`                                                         |
+| Arrive at Port   | Staff Surabaya | `batches.update`                               | Package: `heading_to_port` → `at_port`                                                         |
+| Ship Depart      | Staff Surabaya | `batches.update`                               | Package: → `in_transit`, Batch: `preparing` → `departed`                                       |
+| Ship Arrive      | Staff Ende     | `batches.update`                               | Package: `in_transit` → `arrived`, Batch: `departed` → `arrived`                               |
+| Unbatching       | Staff Ende     | `batches.update`                               | Package: `arrived` → `arrived_at_warehouse`, Batch: `arrived` → `unbatched`                    |
+| Unbagging        | Staff Ende     | `bags.update`                                  | Package: `arrived_at_warehouse` → `ready_for_sorting`, Bag: `in_batch` → `unbagged`            |
+| Sorting          | Staff Ende     | `packages.update`                              | Package: `ready_for_sorting` → `ready_for_pickup` / `in_delivery`                              |
+| Ending           | Staff Ende     | `packages.update`                              | Package: → `completed`                                                                         |
 
 ---
 
@@ -436,13 +473,16 @@ enum PackageStatus: string
     case WaitingForPayment = 'waiting_for_payment';
     case Paid = 'paid';
     case Bagging = 'bagging';
-    case BerangkatKePelabuhan = 'berangkat_ke_pelabuhan';
+    case Batched = 'batched';
+    case HeadingToPort = 'heading_to_port';
+    case AtPort = 'at_port';
     case InTransit = 'in_transit';
     case Arrived = 'arrived';
+    case ArrivedAtWarehouse = 'arrived_at_warehouse';
     case ReadyForSorting = 'ready_for_sorting';
-    case SiapDiambil = 'siap_diambil';
-    case DalamPengantaran = 'dalam_pengantaran';
-    case Selesai = 'selesai';
+    case ReadyForPickup = 'ready_for_pickup';
+    case InDelivery = 'in_delivery';
+    case Completed = 'completed';
 }
 ```
 

@@ -10,17 +10,21 @@ class ZoneController extends Controller
 {
     public function index()
     {
+        $perPage = min((int) request('per_page', 15), 100);
+
         return Inertia::render('dashboard/zones/Index', [
             'zones' => Zone::query()
-                ->when(request('search'), fn ($q, $s) => $q->where('name', 'like', "%{$s}%"))
+                ->when(request('search'), fn($q, $s) => $q->whereFullText('name', $s . '*', ['mode' => 'boolean']))
                 ->orderBy('name')
-                ->paginate(15)
+                ->paginate($perPage)
+                ->onEachSide(1)
                 ->withQueryString()
-                ->through(fn (Zone $zone) => [
+                ->through(fn(Zone $zone) => [
                     'uuid' => $zone->uuid,
                     'name' => $zone->name,
                     'delivery_fee' => $zone->delivery_fee,
-                    'is_pusat' => $zone->is_pusat,
+                    'shipping_price' => $zone->shipping_price,
+                    'is_central' => $zone->is_central,
                     'description' => $zone->description,
                 ]),
         ]);
@@ -36,9 +40,14 @@ class ZoneController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'delivery_fee' => 'required|numeric|min:0',
-            'is_pusat' => 'boolean',
+            'shipping_price' => 'required|numeric|min:0',
+            'is_central' => 'boolean',
             'description' => 'nullable|string',
         ]);
+
+        if ($validated['is_central'] ?? false) {
+            $validated['delivery_fee'] = 0;
+        }
 
         Zone::create($validated);
 
@@ -52,7 +61,8 @@ class ZoneController extends Controller
                 'uuid' => $zone->uuid,
                 'name' => $zone->name,
                 'delivery_fee' => $zone->delivery_fee,
-                'is_pusat' => $zone->is_pusat,
+                'shipping_price' => $zone->shipping_price,
+                'is_central' => $zone->is_central,
                 'description' => $zone->description,
             ],
         ]);
@@ -63,9 +73,14 @@ class ZoneController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'delivery_fee' => 'required|numeric|min:0',
-            'is_pusat' => 'boolean',
+            'shipping_price' => 'required|numeric|min:0',
+            'is_central' => 'boolean',
             'description' => 'nullable|string',
         ]);
+
+        if ($validated['is_central'] ?? false) {
+            $validated['delivery_fee'] = 0;
+        }
 
         $zone->update($validated);
 

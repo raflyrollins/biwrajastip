@@ -184,7 +184,7 @@ export default function PackagesForm({ package: pkg, zones }: FormProps) {
                                     placeholder="Nama pengirim"
                                 />
                                 {errors.sender_name && (
-                                    <p className="mt-1 text-xs text-[var(--warning)]">
+                                    <p className="mt-1 text-xs text-red-500">
                                         {errors.sender_name}
                                     </p>
                                 )}
@@ -203,7 +203,7 @@ export default function PackagesForm({ package: pkg, zones }: FormProps) {
                                     placeholder="No. telepon pengirim"
                                 />
                                 {errors.sender_phone && (
-                                    <p className="mt-1 text-xs text-[var(--warning)]">
+                                    <p className="mt-1 text-xs text-red-500">
                                         {errors.sender_phone}
                                     </p>
                                 )}
@@ -230,7 +230,7 @@ export default function PackagesForm({ package: pkg, zones }: FormProps) {
                                     placeholder="Nama penerima"
                                 />
                                 {errors.receiver_name && (
-                                    <p className="mt-1 text-xs text-[var(--warning)]">
+                                    <p className="mt-1 text-xs text-red-500">
                                         {errors.receiver_name}
                                     </p>
                                 )}
@@ -249,7 +249,7 @@ export default function PackagesForm({ package: pkg, zones }: FormProps) {
                                     placeholder="No. telepon penerima"
                                 />
                                 {errors.receiver_phone && (
-                                    <p className="mt-1 text-xs text-[var(--warning)]">
+                                    <p className="mt-1 text-xs text-red-500">
                                         {errors.receiver_phone}
                                     </p>
                                 )}
@@ -276,7 +276,7 @@ export default function PackagesForm({ package: pkg, zones }: FormProps) {
                                     placeholder="No. tracking"
                                 />
                                 {errors.tracking_number && (
-                                    <p className="mt-1 text-xs text-[var(--warning)]">
+                                    <p className="mt-1 text-xs text-red-500">
                                         {errors.tracking_number}
                                     </p>
                                 )}
@@ -292,7 +292,7 @@ export default function PackagesForm({ package: pkg, zones }: FormProps) {
                                     placeholder="Pilih zona..."
                                 />
                                 {errors.zone_id && (
-                                    <p className="mt-1 text-xs text-[var(--warning)]">
+                                    <p className="mt-1 text-xs text-red-500">
                                         {errors.zone_id}
                                     </p>
                                 )}
@@ -310,7 +310,7 @@ export default function PackagesForm({ package: pkg, zones }: FormProps) {
                                 placeholder="Deskripsi paket (opsional)"
                             />
                             {errors.description && (
-                                <p className="mt-1 text-xs text-[var(--warning)]">
+                                <p className="mt-1 text-xs text-red-500">
                                     {errors.description}
                                 </p>
                             )}
@@ -331,7 +331,7 @@ export default function PackagesForm({ package: pkg, zones }: FormProps) {
                                     suffix="cm"
                                 />
                                 {errors.length_estimated && (
-                                    <p className="mt-1 text-xs text-[var(--warning)]">
+                                    <p className="mt-1 text-xs text-red-500">
                                         {errors.length_estimated}
                                     </p>
                                 )}
@@ -347,7 +347,7 @@ export default function PackagesForm({ package: pkg, zones }: FormProps) {
                                     suffix="cm"
                                 />
                                 {errors.width_estimated && (
-                                    <p className="mt-1 text-xs text-[var(--warning)]">
+                                    <p className="mt-1 text-xs text-red-500">
                                         {errors.width_estimated}
                                     </p>
                                 )}
@@ -363,7 +363,7 @@ export default function PackagesForm({ package: pkg, zones }: FormProps) {
                                     suffix="cm"
                                 />
                                 {errors.height_estimated && (
-                                    <p className="mt-1 text-xs text-[var(--warning)]">
+                                    <p className="mt-1 text-xs text-red-500">
                                         {errors.height_estimated}
                                     </p>
                                 )}
@@ -379,7 +379,7 @@ export default function PackagesForm({ package: pkg, zones }: FormProps) {
                                     suffix="kg"
                                 />
                                 {errors.weight_estimated && (
-                                    <p className="mt-1 text-xs text-[var(--warning)]">
+                                    <p className="mt-1 text-xs text-red-500">
                                         {errors.weight_estimated}
                                     </p>
                                 )}
@@ -415,6 +415,11 @@ export default function PackagesForm({ package: pkg, zones }: FormProps) {
                                         placeholder="0"
                                         suffix="cm"
                                     />
+                                    {errors.length_actual && (
+                                        <p className="mt-1 text-xs text-red-500">
+                                            {errors.length_actual}
+                                        </p>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="mb-1 block text-sm text-[var(--body-subtle)]">
@@ -426,6 +431,11 @@ export default function PackagesForm({ package: pkg, zones }: FormProps) {
                                         placeholder="0"
                                         suffix="cm"
                                     />
+                                    {errors.width_actual && (
+                                        <p className="mt-1 text-xs text-red-500">
+                                            {errors.width_actual}
+                                        </p>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="mb-1 block text-sm text-[var(--body-subtle)]">
@@ -437,6 +447,11 @@ export default function PackagesForm({ package: pkg, zones }: FormProps) {
                                         placeholder="0"
                                         suffix="cm"
                                     />
+                                    {errors.height_actual && (
+                                        <p className="mt-1 text-xs text-red-500">
+                                            {errors.height_actual}
+                                        </p>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="mb-1 block text-sm text-[var(--body-subtle)]">
@@ -448,6 +463,11 @@ export default function PackagesForm({ package: pkg, zones }: FormProps) {
                                         placeholder="0"
                                         suffix="kg"
                                     />
+                                    {errors.weight_actual && (
+                                        <p className="mt-1 text-xs text-red-500">
+                                            {errors.weight_actual}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         </div>

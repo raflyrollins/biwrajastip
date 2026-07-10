@@ -28,19 +28,24 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::prefix('/dashboard')->name('dashboard.')->group(function () {
+    Route::middleware('route.permission')->prefix('/dashboard')->name('dashboard.')->group(function () {
         Route::get('/packages', [PackageController::class, 'index'])->name('packages');
         Route::get('/packages/create', [PackageController::class, 'create'])->name('packages.create');
         Route::post('/packages', [PackageController::class, 'store'])->name('packages.store');
         Route::get('/packages/{package}/edit', [PackageController::class, 'edit'])->name('packages.edit');
         Route::put('/packages/{package}', [PackageController::class, 'update'])->name('packages.update');
         Route::delete('/packages/{package}', [PackageController::class, 'destroy'])->name('packages.destroy');
-        Route::get('/packages/{package}/timbang', [PackageController::class, 'showTimbang'])->name('packages.timbang');
-        Route::post('/packages/{package}/timbang', [PackageController::class, 'updateDimensions'])->name('packages.timbang.store');
+        Route::get('/packages/{package}/weigh', [PackageController::class, 'showWeigh'])->name('packages.weigh');
+        Route::post('/packages/{package}/weigh', [PackageController::class, 'updateDimensions'])->name('packages.weigh.store');
+        Route::get('/packages/{package}/receipt', [PackageController::class, 'showReceipt'])->name('packages.receipt');
 
         Route::get('/bags', [BagController::class, 'index'])->name('bags');
+        Route::get('/bags/{bag}/label', [BagController::class, 'showLabel'])->name('bags.label');
         Route::get('/batches', [BatchController::class, 'index'])->name('batches');
+        Route::get('/batches/{batch}/manifest', [BatchController::class, 'showManifest'])->name('batches.manifest');
         Route::get('/payments', [PaymentController::class, 'index'])->name('payments');
+        Route::get('/payments/create', [PaymentController::class, 'create'])->name('payments.create');
+        Route::post('/payments', [PaymentController::class, 'store'])->name('payments.store');
         Route::put('/payments/{payment}/verify', [PaymentController::class, 'verify'])->name('payments.verify');
         Route::get('/zones', [ZoneController::class, 'index'])->name('zones');
         Route::get('/zones/create', [ZoneController::class, 'create'])->name('zones.create');

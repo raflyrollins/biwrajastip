@@ -5,13 +5,12 @@ namespace App\Http\Controllers;
 use App\Enums\PackageStatus;
 use App\Models\Package;
 use App\Models\Zone;
+use App\Models\Payment;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class PackageController extends Controller
 {
-    private const DEFAULT_TARIFF_PER_KG = 15000;
-
     public function index()
     {
         $user = auth()->user();
@@ -45,13 +44,16 @@ class PackageController extends Controller
 
                 if ($scopes->contains('packages.scope.transit')) {
                     $q->orWhereIn('status', [
-                        PackageStatus::BerangkatKePelabuhan->value,
+                        PackageStatus::Batched->value,
+                        PackageStatus::HeadingToPort->value,
+                        PackageStatus::AtPort->value,
                         PackageStatus::InTransit->value,
                         PackageStatus::Arrived->value,
+                        PackageStatus::ArrivedAtWarehouse->value,
                         PackageStatus::ReadyForSorting->value,
-                        PackageStatus::SiapDiambil->value,
-                        PackageStatus::DalamPengantaran->value,
-                        PackageStatus::Selesai->value,
+                        PackageStatus::ReadyForPickup->value,
+                        PackageStatus::InDelivery->value,
+                        PackageStatus::Completed->value,
                     ]);
                 }
             });
@@ -59,7 +61,15 @@ class PackageController extends Controller
             $query->where('user_id', $user->id);
         }
 
-        $packages = $query->latest()->paginate(20);
+        $search = request('search');
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereFullText(['tracking_number', 'receiver_name', 'sender_name', 'description'], $search, ['mode' => 'boolean']);
+            });
+        }
+
+        $perPage = min((int) request('per_page', 20), 100);
+        $packages = $query->latest()->paginate($perPage)->onEachSide(1);
 
         return Inertia::render('dashboard/packages/Index', [
             'packages' => $packages,
@@ -121,8 +131,8 @@ class PackageController extends Controller
             abort(403);
         }
 
-        if ($user->hasRole('customer') && $package->status->value !== PackageStatus::WaitingForCollection->value) {
-            abort(403);
+        if ($package->status->value !== PackageStatus::WaitingForCollection->value) {
+            abort(403, 'Paket sudah diproses dan tidak dapat diubah.');
         }
 
         $zones = Zone::all(['uuid', 'name']);
@@ -143,8 +153,8 @@ class PackageController extends Controller
             abort(403);
         }
 
-        if ($user->hasRole('customer') && $package->status->value !== PackageStatus::WaitingForCollection->value) {
-            abort(403);
+        if ($package->status->value !== PackageStatus::WaitingForCollection->value) {
+            abort(403, 'Paket sudah diproses dan tidak dapat diubah.');
         }
 
         $rules = [
@@ -187,7 +197,7 @@ class PackageController extends Controller
         return redirect()->route('dashboard.packages')->with('success', 'Paket berhasil dihapus.');
     }
 
-    public function showTimbang($uuid)
+    public function showWeigh($uuid)
     {
         $package = Package::where('uuid', $uuid)
             ->with('zone')
@@ -197,9 +207,9 @@ class PackageController extends Controller
             abort(403, 'Paket harus dalam status collected untuk ditimbang.');
         }
 
-        return Inertia::render('dashboard/packages/Timbang', [
+        return Inertia::render('dashboard/packages/Weigh', [
             'package' => $package,
-            'tariffPerKg' => self::DEFAULT_TARIFF_PER_KG,
+            'tariffPerKg' => (float) ($package->zone?->shipping_price ?? 15000),
         ]);
     }
 
@@ -222,7 +232,8 @@ class PackageController extends Controller
 
         $volumetric = $package->calculateVolumetricWeight();
         $finalWeight = $package->calculateFinalWeight();
-        $price = $package->calculatePrice(self::DEFAULT_TARIFF_PER_KG);
+        $tariffPerKg = (float) ($package->zone?->shipping_price ?? 15000);
+        $price = $package->calculatePrice($tariffPerKg);
         $deliveryFee = $package->zone?->delivery_fee ?? 0;
 
         $package->update([
@@ -235,5 +246,26 @@ class PackageController extends Controller
         ]);
 
         return redirect()->route('dashboard.packages')->with('success', 'Data timbangan berhasil disimpan.');
+    }
+
+    public function showReceipt($uuid)
+    {
+        $package = Package::where('uuid', $uuid)
+            ->with('zone')
+            ->firstOrFail();
+
+        if ($package->status->value !== PackageStatus::Paid->value) {
+            abort(403, 'Paket harus dalam status paid.');
+        }
+
+        $payment = Payment::where('package_id', $package->id)
+            ->where('status', \App\Enums\PaymentStatus::Verified)
+            ->with('user')
+            ->first();
+
+        return Inertia::render('dashboard/packages/Receipt', [
+            'package' => $package,
+            'payment' => $payment,
+        ]);
     }
 }

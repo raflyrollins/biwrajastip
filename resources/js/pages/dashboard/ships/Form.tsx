@@ -38,11 +38,15 @@ export default function ShipsForm() {
 
         if (isEditing) {
             router.put('/dashboard/ships/' + ship.uuid, payload, {
-                onSuccess: () => alert('Kapal berhasil diperbarui.'),
+                onSuccess: () => {
+ alert('Kapal berhasil diperbarui.'); 
+},
             });
         } else {
             router.post('/dashboard/ships', payload, {
-                onSuccess: () => alert('Kapal berhasil ditambahkan.'),
+                onSuccess: () => {
+ alert('Kapal berhasil ditambahkan.'); 
+},
             });
         }
     }

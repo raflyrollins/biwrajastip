@@ -54,11 +54,15 @@ export default function SchedulesForm() {
 
         if (isEditing) {
             router.put('/dashboard/schedules/' + schedule.uuid, payload, {
-                onSuccess: () => alert('Jadwal berhasil diperbarui.'),
+                onSuccess: () => {
+ alert('Jadwal berhasil diperbarui.'); 
+},
             });
         } else {
             router.post('/dashboard/schedules', payload, {
-                onSuccess: () => alert('Jadwal berhasil ditambahkan.'),
+                onSuccess: () => {
+ alert('Jadwal berhasil ditambahkan.'); 
+},
             });
         }
     }

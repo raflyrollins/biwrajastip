@@ -10,7 +10,8 @@ interface Zone {
     uuid: string;
     name: string;
     delivery_fee: string;
-    is_pusat: boolean;
+    shipping_price: string;
+    is_central: boolean;
     description: string | null;
 }
 
@@ -29,26 +30,42 @@ export default function ZonesForm() {
     const [deliveryFee, setDeliveryFee] = useState(
         zone?.delivery_fee?.toString() ?? '',
     );
-    const [isPusat, setIsPusat] = useState(zone?.is_pusat ?? false);
+    const [shippingPrice, setShippingPrice] = useState(
+        zone?.shipping_price?.toString() ?? '',
+    );
+    const [isCentral, setIsCentral] = useState(zone?.is_central ?? false);
     const [description, setDescription] = useState(zone?.description ?? '');
+
+    function handleIsCentralChange(central: boolean) {
+        setIsCentral(central);
+
+        if (central) {
+            setDeliveryFee('0');
+        }
+    }
 
     function handleSubmit(e: FormEvent) {
         e.preventDefault();
 
         const payload = {
             name,
-            delivery_fee: deliveryFee,
-            is_pusat: isPusat,
+            delivery_fee: isCentral ? '0' : deliveryFee,
+            shipping_price: shippingPrice,
+            is_central: isCentral,
             description: description || null,
         };
 
         if (isEditing) {
             router.put('/dashboard/zones/' + zone.uuid, payload, {
-                onSuccess: () => alert('Zona berhasil diperbarui.'),
+                onSuccess: () => {
+ alert('Zona berhasil diperbarui.'); 
+},
             });
         } else {
             router.post('/dashboard/zones', payload, {
-                onSuccess: () => alert('Zona berhasil ditambahkan.'),
+                onSuccess: () => {
+ alert('Zona berhasil ditambahkan.'); 
+},
             });
         }
     }
@@ -88,13 +105,35 @@ export default function ZonesForm() {
 
                     <div>
                         <label className="mb-1.5 block text-sm font-medium text-[var(--heading)]">
-                            Biaya Kirim
+                            Harga Kirim (per kg)
+                        </label>
+                        <NumericInput
+                            value={shippingPrice}
+                            onChange={setShippingPrice}
+                            placeholder="15000"
+                        />
+                        {errors?.shipping_price && (
+                            <p className="mt-1 text-xs text-red-500">
+                                {errors.shipping_price}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="mb-1.5 block text-sm font-medium text-[var(--heading)]">
+                            Biaya Antar Lokal
                         </label>
                         <NumericInput
                             value={deliveryFee}
                             onChange={setDeliveryFee}
                             placeholder="0"
+                            disabled={isCentral}
                         />
+                        {isCentral && (
+                            <p className="mt-1 text-xs text-[var(--body-subtle)]">
+                                Biaya antar otomatis 0 untuk zona pusat.
+                            </p>
+                        )}
                         {errors?.delivery_fee && (
                             <p className="mt-1 text-xs text-red-500">
                                 {errors.delivery_fee}
@@ -110,9 +149,11 @@ export default function ZonesForm() {
                             <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--body)]">
                                 <input
                                     type="radio"
-                                    name="is_pusat"
-                                    checked={!isPusat}
-                                    onChange={() => setIsPusat(false)}
+                                    name="is_central"
+                                    checked={!isCentral}
+                                    onChange={() =>
+                                        handleIsCentralChange(false)
+                                    }
                                     className="cursor-pointer accent-[var(--brand)]"
                                 />
                                 Cabang
@@ -120,17 +161,17 @@ export default function ZonesForm() {
                             <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--body)]">
                                 <input
                                     type="radio"
-                                    name="is_pusat"
-                                    checked={isPusat}
-                                    onChange={() => setIsPusat(true)}
+                                    name="is_central"
+                                    checked={isCentral}
+                                    onChange={() => handleIsCentralChange(true)}
                                     className="cursor-pointer accent-[var(--brand)]"
                                 />
                                 Pusat
                             </label>
                         </div>
-                        {errors?.is_pusat && (
+                        {errors?.is_central && (
                             <p className="mt-1 text-xs text-red-500">
-                                {errors.is_pusat}
+                                {errors.is_central}
                             </p>
                         )}
                     </div>

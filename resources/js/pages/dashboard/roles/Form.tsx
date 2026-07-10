@@ -56,7 +56,9 @@ export default function RolesForm() {
         };
 
         router.post('/dashboard/roles/' + role.uuid, payload, {
-            onSuccess: () => alert('Permission role berhasil diperbarui.'),
+            onSuccess: () => {
+ alert('Permission role berhasil diperbarui.'); 
+},
             onError: (errs) => {
                 const msg = Object.values(errs).flat().join(', ');
                 alert(msg || 'Gagal memperbarui permission.');

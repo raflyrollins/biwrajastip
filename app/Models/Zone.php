@@ -20,11 +20,12 @@ class Zone extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['uuid', 'name', 'delivery_fee', 'is_pusat', 'description'];
+    protected $fillable = ['uuid', 'name', 'delivery_fee', 'shipping_price', 'is_central', 'description'];
 
     protected $casts = [
         'delivery_fee' => 'decimal:2',
-        'is_pusat' => 'boolean',
+        'shipping_price' => 'decimal:2',
+        'is_central' => 'boolean',
     ];
 
     public function getRouteKeyName(): string
