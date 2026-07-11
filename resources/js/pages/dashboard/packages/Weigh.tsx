@@ -35,19 +35,19 @@ function calculatePrice(
     weightActual: number,
     tariffPerKg: number,
     deliveryFee: number,
-): { volumetric: number; finalWeight: number; price: number; total: number } {
+): { volumetricRaw: number; volumetric: number; finalWeight: number; price: number; total: number } {
     if (length <= 0 || width <= 0 || height <= 0 || weightActual <= 0) {
-        return { volumetric: 0, finalWeight: 0, price: 0, total: 0 };
+        return { volumetricRaw: 0, volumetric: 0, finalWeight: 0, price: 0, total: 0 };
     }
 
+    const volumetricRaw = (length * width * height) / 6000 * 1000;
     const volumetric = Math.ceil((length * width * height) / 6000) * 1000;
     const finalWeight = Math.max(weightActual * 1000, volumetric);
     const weightKg = finalWeight / 1000;
-    const roundedWeight = Math.ceil(weightKg / 0.6) * 0.6;
-    const price = Math.ceil(tariffPerKg * roundedWeight);
+    const price = Math.ceil(tariffPerKg * weightKg);
     const total = price + deliveryFee;
 
-    return { volumetric, finalWeight, price, total };
+    return { volumetricRaw, volumetric, finalWeight, price, total };
 }
 
 export default function Weigh({ package: pkg, tariffPerKg }: WeighProps) {
@@ -227,29 +227,28 @@ export default function Weigh({ package: pkg, tariffPerKg }: WeighProps) {
                             </div>
                         </div>
 
-                        {priceBreakdown && (
+                                {priceBreakdown && (
                             <div className="border border-[var(--border-default)] bg-[var(--neutral-primary)] p-6">
                                 <h2 className="mb-4 text-base font-bold text-[var(--heading)]">
                                     Kalkulasi Harga
                                 </h2>
                                 <div className="space-y-2 text-sm text-[var(--body)]">
                                     <div className="flex justify-between">
+                                        <span>Berat Aktual</span>
+                                        <span className="font-medium text-[var(--heading)]">
+                                            {Number(weightActual) || 0} kg
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between">
                                         <span>Berat Volumetrik</span>
                                         <span className="font-medium text-[var(--heading)]">
-                                            {(
-                                                priceBreakdown.volumetric / 1000
-                                            ).toFixed(2)}{' '}
-                                            kg
+                                            {(priceBreakdown.volumetricRaw / 1000).toFixed(3)} kg
                                         </span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span>Berat Final</span>
                                         <span className="font-medium text-[var(--heading)]">
-                                            {(
-                                                priceBreakdown.finalWeight /
-                                                1000
-                                            ).toFixed(2)}{' '}
-                                            kg
+                                            {priceBreakdown.finalWeight / 1000} kg
                                         </span>
                                     </div>
                                     <div className="flex justify-between">

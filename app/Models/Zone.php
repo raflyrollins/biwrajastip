@@ -23,8 +23,8 @@ class Zone extends Model
     protected $fillable = ['uuid', 'name', 'delivery_fee', 'shipping_price', 'is_central', 'description'];
 
     protected $casts = [
-        'delivery_fee' => 'decimal:2',
-        'shipping_price' => 'decimal:2',
+        'delivery_fee' => 'float',
+        'shipping_price' => 'float',
         'is_central' => 'boolean',
     ];
 

@@ -1,10 +1,11 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Search, Trash2, Pencil } from 'lucide-react';
+import { Trash2, Pencil } from 'lucide-react';
 
 import DashboardLayout from '@/components/DashboardLayout';
 import { ScheduleEmpty } from '@/components/EmptyIllustrations';
 import EmptyState from '@/components/EmptyState';
 import Pagination from '@/components/ui/Pagination';
+import SearchFilters from '@/components/ui/SearchFilters';
 import { useAlert, useConfirm } from '@/contexts/AlertContext';
 import { useCan } from '@/lib/permissions';
 
@@ -28,26 +29,15 @@ interface PaginatedData<T> {
 }
 
 export default function SchedulesIndex() {
-    const { schedules } = usePage().props as unknown as {
+    const { schedules, filters } = usePage().props as unknown as {
         schedules: PaginatedData<Schedule>;
+        filters?: { search?: string; date_from?: string; date_to?: string; year?: string };
     };
     const canCreate = useCan('schedules.create');
     const canEdit = useCan('schedules.edit');
     const canDelete = useCan('schedules.delete');
     const alert = useAlert();
     const confirm = useConfirm();
-
-    function handleSearch(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-        const form = new FormData(e.currentTarget);
-        const search = form.get('search') as string;
-
-        router.get(
-            '/dashboard/schedules',
-            { search },
-            { preserveState: true, replace: true },
-        );
-    }
 
     async function handleDelete(schedule: Schedule) {
         const ok = await confirm('Yakin ingin menghapus jadwal ini?');
@@ -86,33 +76,26 @@ export default function SchedulesIndex() {
             <Head title="Jadwal" />
 
             <DashboardLayout title="Jadwal">
-                <div className="mb-6 flex items-center justify-between">
-                    <form
-                        onSubmit={handleSearch}
-                        className="flex items-center gap-2"
-                    >
-                        <div className="relative">
-                            <Search
-                                size={16}
-                                className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[var(--body-subtle)]"
-                            />
-                            <input
-                                type="text"
-                                name="search"
-                                placeholder="Cari kapal..."
-                                className="w-64 border border-[var(--border-default)] bg-[var(--neutral-primary)] py-2.5 pr-3 pl-10 text-sm text-[var(--heading)] outline-none placeholder:text-[var(--body-subtle)] focus:border-[var(--brand)]"
-                            />
-                        </div>
-                    </form>
-                    {canCreate && (
+                <SearchFilters
+                    baseRoute="/dashboard/schedules"
+                    search={filters?.search ?? ''}
+                    dateFrom={filters?.date_from ?? ''}
+                    dateTo={filters?.date_to ?? ''}
+                    year={filters?.year ?? ''}
+                    searchPlaceholder="Cari kapal..."
+                    showDateFilter
+                    showYearFilter
+                />
+                {canCreate && (
+                    <div className="mb-6 flex justify-end">
                         <Link
                             href={'/dashboard/schedules/create'}
                             className="border-none bg-[var(--brand)] px-6 py-3 text-sm font-medium text-[var(--on-brand)] no-underline transition-colors hover:bg-[var(--brand-strong)]"
                         >
                             + Tambah Jadwal
                         </Link>
-                    )}
-                </div>
+                    </div>
+                )}
 
                 {schedules.data.length === 0 ? (
                     <div className="border border-[var(--border-default)] bg-[var(--neutral-primary)]">

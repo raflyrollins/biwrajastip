@@ -21,7 +21,7 @@ use Illuminate\Support\Str;
  * @property string $tracking_number
  * @property string|null $tracking_number_biwra
  * @property int $zone_id
- * @property string $status
+ * @property PackageStatus $status
  * @property float $weight_estimated
  * @property float $length_estimated
  * @property float $width_estimated
@@ -76,19 +76,19 @@ class Package extends Model
     ];
 
     protected $casts = [
-        'weight_estimated' => 'decimal:2',
-        'length_estimated' => 'decimal:2',
-        'width_estimated' => 'decimal:2',
-        'height_estimated' => 'decimal:2',
-        'weight_actual' => 'decimal:2',
-        'length_actual' => 'decimal:2',
-        'width_actual' => 'decimal:2',
-        'height_actual' => 'decimal:2',
-        'volumetric_weight' => 'decimal:2',
-        'final_weight' => 'decimal:2',
-        'price' => 'decimal:2',
-        'delivery_fee' => 'decimal:2',
-        'total_price' => 'decimal:2',
+        'weight_estimated' => 'float',
+        'length_estimated' => 'float',
+        'width_estimated' => 'float',
+        'height_estimated' => 'float',
+        'weight_actual' => 'float',
+        'length_actual' => 'float',
+        'width_actual' => 'float',
+        'height_actual' => 'float',
+        'volumetric_weight' => 'float',
+        'final_weight' => 'float',
+        'price' => 'float',
+        'delivery_fee' => 'float',
+        'total_price' => 'float',
         'collected_at' => 'datetime',
         'status' => PackageStatus::class,
     ];
@@ -153,8 +153,7 @@ class Package extends Model
     {
         $finalWeight = $this->calculateFinalWeight();
         $weightKg = $finalWeight / 1000;
-        $roundedWeight = ceil($weightKg / 0.6) * 0.6;
 
-        return ceil($tariffPerKg * $roundedWeight);
+        return ceil($tariffPerKg * $weightKg);
     }
 }

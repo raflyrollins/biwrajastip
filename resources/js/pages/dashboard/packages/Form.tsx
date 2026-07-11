@@ -98,8 +98,7 @@ export default function PackagesForm({ package: pkg, zones }: FormProps) {
             const volumetric = Math.ceil((l * w * h) / 6000) * 1000;
             const finalWeight = Math.max(wt * 1000, volumetric);
             const weightKg = finalWeight / 1000;
-            const roundedWeight = Math.ceil(weightKg / 0.6) * 0.6;
-            const price = Math.ceil(15000 * roundedWeight);
+            const price = Math.ceil(15000 * weightKg);
 
             return price;
         }

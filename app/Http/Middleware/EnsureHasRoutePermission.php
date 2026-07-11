@@ -20,6 +20,8 @@ class EnsureHasRoutePermission
         'receipt' => '.print',
         'label' => '.print',
         'manifest' => '.print',
+        'reject' => '.verify',
+        'verify' => '.verify',
     ];
 
     public function handle(Request $request, Closure $next): Response

@@ -2,24 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasFilters;
 use App\Models\Zone;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ZoneController extends Controller
 {
-    public function index()
+    use HasFilters;
+
+    public function index(Request $request)
     {
-        $perPage = min((int) request('per_page', 15), 100);
+        $perPage = min((int) $request->get('per_page', 15), 100);
+
+        $query = Zone::query()->orderBy('name');
+
+        $this->applyFilters($query, $request, ['name']);
 
         return Inertia::render('dashboard/zones/Index', [
-            'zones' => Zone::query()
-                ->when(request('search'), fn($q, $s) => $q->whereFullText('name', $s . '*', ['mode' => 'boolean']))
-                ->orderBy('name')
+            'zones' => $query
                 ->paginate($perPage)
                 ->onEachSide(1)
                 ->withQueryString()
-                ->through(fn(Zone $zone) => [
+                ->through(fn (Zone $zone) => [
                     'uuid' => $zone->uuid,
                     'name' => $zone->name,
                     'delivery_fee' => $zone->delivery_fee,

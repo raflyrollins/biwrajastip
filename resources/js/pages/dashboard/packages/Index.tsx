@@ -1,12 +1,12 @@
 import { Link, router } from '@inertiajs/react';
 import { Head } from '@inertiajs/react';
-import { Edit, Plus, Printer, ReceiptText, Search, Trash2, Weight } from 'lucide-react';
-import { useState } from 'react';
+import { Edit, Plus, Printer, ReceiptText, Trash2, Weight } from 'lucide-react';
 
 import DashboardLayout from '@/components/DashboardLayout';
 import { PackageEmpty } from '@/components/EmptyIllustrations';
 import EmptyState from '@/components/EmptyState';
 import Pagination from '@/components/ui/Pagination';
+import SearchFilters from '@/components/ui/SearchFilters';
 import { useAlert, useConfirm } from '@/contexts/AlertContext';
 import { useCan } from '@/lib/permissions';
 
@@ -73,9 +73,10 @@ function getStatusColor(status: string): string {
 
 interface PackagesIndexProps {
     packages: PaginatedData<Package>;
+    filters?: { search?: string; date_from?: string; date_to?: string; year?: string };
 }
 
-export default function PackagesIndex({ packages }: PackagesIndexProps) {
+export default function PackagesIndex({ packages, filters }: PackagesIndexProps) {
     const canCreate = useCan('packages.create');
     const canDelete = useCan('packages.delete');
     const canUpdate = useCan('packages.update');
@@ -84,7 +85,6 @@ export default function PackagesIndex({ packages }: PackagesIndexProps) {
     const canPrint = useCan('packages.print');
     const alert = useAlert();
     const confirm = useConfirm();
-    const [search, setSearch] = useState('');
 
     async function handleDelete(pkg: Package) {
         const confirmed = await confirm(
@@ -102,43 +102,21 @@ export default function PackagesIndex({ packages }: PackagesIndexProps) {
         });
     }
 
-    function handleSearch(e: React.FormEvent) {
-        e.preventDefault();
-        router.get(
-            '/dashboard/packages',
-            { search },
-            { preserveState: true, replace: true },
-        );
-    }
-
     return (
         <>
             <Head title="Paket" />
 
             <DashboardLayout title="Paket">
-                <div className="mb-6 flex items-center justify-between gap-4">
-                    <form onSubmit={handleSearch} className="flex flex-1 items-center gap-2">
-                        <div className="relative flex-1 max-w-md">
-                            <Search
-                                size={16}
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--body-subtle)]"
-                            />
-                            <input
-                                type="text"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Cari tracking, penerima, pengirim..."
-                                className="w-full border border-[var(--border-default)] bg-[var(--neutral-primary)] py-2.5 pl-10 pr-3 text-sm text-[var(--body)] outline-none placeholder:text-[var(--body-subtle)] focus:border-[var(--brand)]"
-                            />
-                        </div>
-                        <button
-                            type="submit"
-                            className="cursor-pointer border border-[var(--border-default)] bg-[var(--neutral-primary)] px-4 py-2.5 text-sm text-[var(--body)] transition-colors hover:bg-[var(--neutral-tertiary)]"
-                        >
-                            Cari
-                        </button>
-                    </form>
-                    {canCreate && (
+                <SearchFilters
+                    baseRoute="/dashboard/packages"
+                    search={filters?.search ?? ''}
+                    dateFrom={filters?.date_from ?? ''}
+                    dateTo={filters?.date_to ?? ''}
+                    searchPlaceholder="Cari tracking, penerima, pengirim..."
+                    showDateFilter
+                />
+                {canCreate && (
+                    <div className="mb-6 flex justify-end">
                         <Link
                             href="/dashboard/packages/create"
                             className="inline-flex shrink-0 cursor-pointer items-center gap-2 border-none bg-[var(--brand)] px-6 py-3 text-sm font-medium text-[var(--on-brand)] no-underline transition-colors hover:bg-[var(--brand-strong)]"
@@ -146,8 +124,8 @@ export default function PackagesIndex({ packages }: PackagesIndexProps) {
                             <Plus size={16} />
                             Buat Paket
                         </Link>
-                    )}
-                </div>
+                    </div>
+                )}
 
                 {packages.data.length === 0 ? (
                     <div className="border border-[var(--border-default)] bg-[var(--neutral-primary)]">
@@ -270,7 +248,7 @@ export default function PackagesIndex({ packages }: PackagesIndexProps) {
                                                         pkg.status ===
                                                             'waiting_for_payment' && (
                                                             <Link
-                                                                href="/dashboard/payments/create"
+                                                                href={`/dashboard/payments/create?package=${pkg.uuid}`}
                                                                 className="inline-flex cursor-pointer items-center gap-1 border border-[var(--border-default)] bg-[var(--brand)] px-2.5 py-1.5 text-xs font-medium text-[var(--on-brand)] no-underline transition-colors hover:bg-[var(--brand-strong)]"
                                                             >
                                                                 <ReceiptText
@@ -284,6 +262,7 @@ export default function PackagesIndex({ packages }: PackagesIndexProps) {
                                                             'paid' && (
                                                             <Link
                                                                 href={`/dashboard/packages/${pkg.uuid}/receipt`}
+                                                                target="_blank"
                                                                 className="inline-flex cursor-pointer items-center gap-1 border border-[var(--border-default)] bg-[var(--neutral-primary)] px-2.5 py-1.5 text-xs text-[var(--body)] no-underline transition-colors hover:bg-[var(--neutral-tertiary)]"
                                                             >
                                                                 <Printer

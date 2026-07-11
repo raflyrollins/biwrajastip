@@ -136,21 +136,34 @@ export default function DatePicker({
             {open && (
                 <div className="absolute left-0 z-50 mt-1 w-72 border border-[var(--border-default)] bg-[var(--neutral-primary)] p-4 shadow-lg">
                     {/* ── Month/Year header ── */}
-                    <div className="mb-4 flex items-center justify-between">
+                    <div className="mb-4 flex items-center justify-between gap-1">
                         <button
                             type="button"
                             onClick={prevMonth}
-                            className="flex size-8 cursor-pointer items-center justify-center border border-[var(--border-default)] bg-transparent text-[var(--body)] hover:text-[var(--heading)]"
+                            className="flex size-8 shrink-0 cursor-pointer items-center justify-center border border-[var(--border-default)] bg-transparent text-[var(--body)] hover:text-[var(--heading)]"
                         >
                             <ChevronLeft size={16} />
                         </button>
                         <span className="text-sm font-medium text-[var(--heading)]">
-                            {MONTHS[viewMonth]} {viewYear}
+                            {MONTHS[viewMonth]}
                         </span>
+                        <div className="relative">
+                            <select
+                                value={viewYear}
+                                onChange={(e) => setViewYear(Number(e.target.value))}
+                                className="appearance-none cursor-pointer border border-[var(--border-default)] bg-[var(--neutral-primary)] px-2 py-1 text-sm text-[var(--heading)] outline-none focus:border-[var(--brand)]"
+                            >
+                                {Array.from({ length: 11 }, (_, i) => new Date().getFullYear() + 1 - i).map((y) => (
+                                    <option key={y} value={y}>
+                                        {y}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                         <button
                             type="button"
                             onClick={nextMonth}
-                            className="flex size-8 cursor-pointer items-center justify-center border border-[var(--border-default)] bg-transparent text-[var(--body)] hover:text-[var(--heading)]"
+                            className="flex size-8 shrink-0 cursor-pointer items-center justify-center border border-[var(--border-default)] bg-transparent text-[var(--body)] hover:text-[var(--heading)]"
                         >
                             <ChevronRight size={16} />
                         </button>

@@ -1,4 +1,58 @@
-# Sesi — 10 Juli 2026
+# Sesi
+
+## 11 Juli 2026
+
+### Payment Flow
+- **Upload bukti:** kompresi GD (1920px, JPEG quality 70) di `PaymentController::compressAndStore()`
+- **Status flow:** `pending` → `verified` / `rejected` (cek resubmit saat pending, izinkan ulang saat rejected)
+- **Admin actions:** verifikasi & tolak dengan alasan (modal textarea)
+- `Payment.php` — proofImage accessor auto `Storage::url`
+- **QRIS** di halaman bayar masih placeholder
+
+### Print Pages (Receipt, Label, Manifest)
+- Semua hapus `DashboardLayout` — standalone pages tanpa sidebar, dibuka via `target="_blank"`
+- `PrintableDocument.tsx` — reusable wrapper: `@page`, `@media print`, 3 ukuran (thermal/a6/a4)
+- Fix `QRCode` → `QRCodeSVG` di ketiga print page
+
+### Pricing & Weight Fixes
+- Hilangkan `.00` desimal: cast `decimal:2` → `float` di Package, Zone, Payment, Bag
+- **Shipping cost:** hapus `ceil(weightKg / 0.6) * 0.6` — sekarang pakai `ceil(tarif_per_kg × final_weight / 1000) + delivery_fee`
+- Tampilkan berat volumetrik (unrounded, 3 desimal) + berat aktual di kalkulasi Weigh
+- **Bag weight:** dihitung dari sum `final_weight` package saat bagging (`BiwraHubController`)
+
+### Tracking & Index Pages
+- `tracking_number_biwra` auto-generated (`BWR` + ID pad 8 digit) saat package dibuat
+- Bag & Batch Index: controller fetch + paginate data, frontend tabel lengkap
+- **SearchFilters component** (search input + date from/to DatePicker + year dropdown)
+- **HasFilters trait** — `applyFilters()` search LIKE + date filter + year filter
+- Search + date filter di **semua** index pages: Bags, Batches, Payments, Users, Roles, Zones, Ships, Schedules, Packages
+- FULLTEXT search 500 error: try-catch fallback ke `LIKE`
+- **DatePicker:** tambah year selector dropdown
+
+### Scope & Permissions
+- Package scope (existing): `packages.scope.own/collected/transit/all`
+- **Bag scope (baru):** `bags.scope.own` (staff_surabaya), `bags.scope.unbagged` (staff_ende), `bags.scope.all` (admin/owner)
+- **Batch scope (baru):** `batches.scope.own` (staff_surabaya), `batches.scope.unbatched` (staff_ende), `batches.scope.all` (admin/owner)
+- `BagController` & `BatchController` pakai permission-based scope resolution (sama pattern dengan `PackageController`)
+- **Role edit 403:** tambah `roles.create`, `roles.update`, `roles.delete` di seeder + assign ke admin & owner
+
+### Layout
+- Dashboard content rata kiri (`#dashboard-content` + CSS override)
+
+### Files Baru / Diubah
+- `app/Http/Controllers/PaymentController.php` — verify/reject + compressAndStore
+- `app/Http/Controllers/Traits/HasFilters.php` — trait baru
+- `resources/js/components/ui/SearchFilters.tsx` — komponen baru
+- `resources/js/components/ui/DatePicker.tsx` — tambah year dropdown
+- `resources/js/components/print/PrintableDocument.tsx` — komponen baru
+- `resources/js/pages/dashboard/payments/Form.tsx` — upload + status-aware
+- `resources/js/pages/dashboard/payments/Index.tsx` — verify/reject actions
+- `resources/js/pages/dashboard/packages/Receipt.tsx`, `bags/Label.tsx`, `batches/Manifest.tsx` — standalone print
+- `database/seeders/RolePermissionSeeder.php` — scope perms + roles CRUD
+
+---
+
+## 10 Juli 2026
 
 ## Project
 **BiwraJastip** — Aplikasi cargo consolidation (jastip) Laravel 13 + React 19 (Inertia v3) + Tailwind CSS v4 + Vite 8. PHP 8.3.
@@ -22,11 +76,11 @@
 | Zones | `/dashboard/zones` | `Index.tsx`, `Form.tsx` |
 | Ships | `/dashboard/ships` | `Index.tsx`, `Form.tsx` |
 | Schedules | `/dashboard/schedules` | `Index.tsx`, `Form.tsx` |
-| Packages | `/dashboard/packages` | `Index.tsx`, `Form.tsx`, `Weigh.tsx` |
-| Payments | `/dashboard/payments` | `Index.tsx` |
+| Packages | `/dashboard/packages` | `Index.tsx`, `Form.tsx`, `Weigh.tsx`, `Receipt.tsx` |
+| Payments | `/dashboard/payments` | `Index.tsx`, `Form.tsx` |
 | Reports | `/dashboard/reports` | `Index.tsx` |
-| Batches | `/dashboard/batches` | `Index.tsx` |
-| Bags | `/dashboard/bags` | `Index.tsx` |
+| Batches | `/dashboard/batches` | `Index.tsx`, `Manifest.tsx` |
+| Bags | `/dashboard/bags` | `Index.tsx`, `Label.tsx` |
 | Users | `/dashboard/users` | `Index.tsx`, `Form.tsx` |
 | Roles | `/dashboard/roles` | `Index.tsx`, `Form.tsx` |
 
@@ -95,16 +149,23 @@ composer ci:check      # full pipeline
 ```
 
 ## Status
-- ✅ Lint, types: PASS
+- ✅ Lint, types: PASS (10 Jul)
 - ✅ Tests: PASS
 - ✅ Migrations & seeders: applied
 - ✅ DB column `is_pusat` → `is_central`
 - ✅ Enum values migrated
+- ✅ Search + date filter di semua index pages
+- ✅ Bag/Batch permission scope (bukan hardcoded role)
+- ✅ Role edit 403 fixed (tambah perms CRUD roles)
+- ✅ Print pages standalone tanpa sidebar
+- ✅ Upload bukti bayar dengan kompresi GD
+- ✅ Payment verify/reject flow
 
 ## Catatan untuk sesi berikutnya
-- Tambah test feature untuk BiwraHub endpoints baru (send-to-port, arrive-at-port)
-- Integrasi payment gateway
+- Isi placeholder QRIS di halaman bayar dengan QRIS asli
+- Buat feature tests untuk BiwraHub endpoints
+- Pastikan fitur export laporan (reports) jalan
+- Cek konsistensi permission scope di seluruh BiwraHub action controller
 - Dashboard widget/statistik homepage
-- Filter & sorting di Index pages
 - Real-time notification via Reverb
 - Implementasi mobile BiwraHub hub

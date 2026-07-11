@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
  * @property int $ship_id
  * @property int $schedule_id
  * @property string $departure_date
- * @property string $status
+ * @property BatchStatus $status
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */

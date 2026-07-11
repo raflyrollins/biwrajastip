@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
  * @property int $id
  * @property string $uuid
  * @property string $code
- * @property string $status
+ * @property BagStatus $status
  * @property int|null $batch_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -27,7 +27,7 @@ class Bag extends Model
 
     protected $casts = [
         'status' => BagStatus::class,
-        'weight' => 'decimal:2',
+        'weight' => 'float',
     ];
 
     public function getRouteKeyName(): string

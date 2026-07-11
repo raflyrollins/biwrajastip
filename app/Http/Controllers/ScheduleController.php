@@ -9,14 +9,30 @@ use Inertia\Inertia;
 
 class ScheduleController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $perPage = min((int) request('per_page', 15), 100);
+        $perPage = min((int) $request->get('per_page', 15), 100);
+
+        $query = Schedule::query()->with('ship');
+
+        if ($search = $request->get('search')) {
+            $query->whereHas('ship', fn ($q) => $q->where('name', 'like', "%{$search}%"));
+        }
+
+        if ($dateFrom = $request->get('date_from')) {
+            $query->whereDate('departure_date', '>=', $dateFrom);
+        }
+
+        if ($dateTo = $request->get('date_to')) {
+            $query->whereDate('departure_date', '<=', $dateTo);
+        }
+
+        if ($year = $request->get('year')) {
+            $query->whereYear('departure_date', $year);
+        }
 
         return Inertia::render('dashboard/schedules/Index', [
-            'schedules' => Schedule::query()
-                ->with('ship')
-                ->when(request('search'), fn ($q, $s) => $q->whereHas('ship', fn ($q) => $q->whereFullText('name', $s . '*', ['mode' => 'boolean'])))
+            'schedules' => $query
                 ->orderBy('departure_date', 'desc')
                 ->paginate($perPage)
                 ->onEachSide(1)

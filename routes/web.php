@@ -47,6 +47,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/payments/create', [PaymentController::class, 'create'])->name('payments.create');
         Route::post('/payments', [PaymentController::class, 'store'])->name('payments.store');
         Route::put('/payments/{payment}/verify', [PaymentController::class, 'verify'])->name('payments.verify');
+        Route::put('/payments/{payment}/reject', [PaymentController::class, 'reject'])->name('payments.reject');
         Route::get('/zones', [ZoneController::class, 'index'])->name('zones');
         Route::get('/zones/create', [ZoneController::class, 'create'])->name('zones.create');
         Route::post('/zones', [ZoneController::class, 'store'])->name('zones.store');

@@ -1,10 +1,11 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Search, Trash2, Pencil } from 'lucide-react';
+import { Trash2, Pencil } from 'lucide-react';
 
 import DashboardLayout from '@/components/DashboardLayout';
 import { ZoneEmpty } from '@/components/EmptyIllustrations';
 import EmptyState from '@/components/EmptyState';
 import Pagination from '@/components/ui/Pagination';
+import SearchFilters from '@/components/ui/SearchFilters';
 import { useAlert, useConfirm } from '@/contexts/AlertContext';
 import { useCan } from '@/lib/permissions';
 
@@ -29,26 +30,15 @@ interface PaginatedData<T> {
 }
 
 export default function ZonesIndex() {
-    const { zones } = usePage().props as unknown as {
+    const { zones, filters } = usePage().props as unknown as {
         zones: PaginatedData<Zone>;
+        filters?: { search?: string; date_from?: string; date_to?: string; year?: string };
     };
     const canCreate = useCan('zones.create');
     const canEdit = useCan('zones.update');
     const canDelete = useCan('zones.delete');
     const alert = useAlert();
     const confirm = useConfirm();
-
-    function handleSearch(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-        const form = new FormData(e.currentTarget);
-        const search = form.get('search') as string;
-
-        router.get(
-            '/dashboard/zones',
-            { search },
-            { preserveState: true, replace: true },
-        );
-    }
 
     async function handleDelete(zone: Zone) {
         const ok = await confirm(`Yakin ingin menghapus zona "${zone.name}"?`);
@@ -67,33 +57,24 @@ export default function ZonesIndex() {
             <Head title="Zona" />
 
             <DashboardLayout title="Zona">
-                <div className="mb-6 flex items-center justify-between">
-                    <form
-                        onSubmit={handleSearch}
-                        className="flex items-center gap-2"
-                    >
-                        <div className="relative">
-                            <Search
-                                size={16}
-                                className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[var(--body-subtle)]"
-                            />
-                            <input
-                                type="text"
-                                name="search"
-                                placeholder="Cari zona..."
-                                className="w-64 border border-[var(--border-default)] bg-[var(--neutral-primary)] py-2.5 pr-3 pl-10 text-sm text-[var(--heading)] outline-none placeholder:text-[var(--body-subtle)] focus:border-[var(--brand)]"
-                            />
-                        </div>
-                    </form>
-                    {canCreate && (
+                <SearchFilters
+                    baseRoute="/dashboard/zones"
+                    search={filters?.search ?? ''}
+                    dateFrom={filters?.date_from ?? ''}
+                    dateTo={filters?.date_to ?? ''}
+                    searchPlaceholder="Cari zona..."
+                    showDateFilter
+                />
+                {canCreate && (
+                    <div className="mb-6 flex justify-end">
                         <Link
                             href={'/dashboard/zones/create'}
                             className="border-none bg-[var(--brand)] px-6 py-3 text-sm font-medium text-[var(--on-brand)] no-underline transition-colors hover:bg-[var(--brand-strong)]"
                         >
                             + Tambah Zona
                         </Link>
-                    )}
-                </div>
+                    </div>
+                )}
 
                 {zones.data.length === 0 ? (
                     <div className="border border-[var(--border-default)] bg-[var(--neutral-primary)]">

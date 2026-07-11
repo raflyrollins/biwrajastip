@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasFilters;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Http\Request;
@@ -9,9 +10,15 @@ use Inertia\Inertia;
 
 class RoleController extends Controller
 {
-    public function index()
+    use HasFilters;
+
+    public function index(Request $request)
     {
-        $roles = Role::withCount('permissions')->orderBy('name')->get();
+        $query = Role::withCount('permissions')->orderBy('name');
+
+        $this->applyFilters($query, $request, ['name', 'label']);
+
+        $roles = $query->get();
 
         return Inertia::render('dashboard/roles/Index', [
             'roles' => $roles,

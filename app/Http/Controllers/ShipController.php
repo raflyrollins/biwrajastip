@@ -2,20 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasFilters;
 use App\Models\Ship;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ShipController extends Controller
 {
-    public function index()
+    use HasFilters;
+
+    public function index(Request $request)
     {
-        $perPage = min((int) request('per_page', 15), 100);
+        $perPage = min((int) $request->get('per_page', 15), 100);
+
+        $query = Ship::query()->orderBy('name');
+
+        $this->applyFilters($query, $request, ['name']);
 
         return Inertia::render('dashboard/ships/Index', [
-            'ships' => Ship::query()
-                ->when(request('search'), fn ($q, $s) => $q->whereFullText('name', $s . '*', ['mode' => 'boolean']))
-                ->orderBy('name')
+            'ships' => $query
                 ->paginate($perPage)
                 ->onEachSide(1)
                 ->withQueryString()

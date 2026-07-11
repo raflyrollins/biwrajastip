@@ -4,6 +4,7 @@ import { Settings } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { SettingsEmpty } from '@/components/EmptyIllustrations';
 import EmptyState from '@/components/EmptyState';
+import SearchFilters from '@/components/ui/SearchFilters';
 import { useCan } from '@/lib/permissions';
 
 interface Role {
@@ -15,9 +16,10 @@ interface Role {
 
 interface RolesIndexProps {
     roles: Role[];
+    filters?: { search?: string; date_from?: string; date_to?: string; year?: string };
 }
 
-export default function RolesIndex({ roles }: RolesIndexProps) {
+export default function RolesIndex({ roles, filters }: RolesIndexProps) {
     const canManage = useCan('roles.manage');
 
     return (
@@ -30,6 +32,15 @@ export default function RolesIndex({ roles }: RolesIndexProps) {
                         Kelola role dan permission.
                     </p>
                 )}
+
+                <SearchFilters
+                    baseRoute="/dashboard/roles"
+                    search={filters?.search ?? ''}
+                    dateFrom={filters?.date_from ?? ''}
+                    dateTo={filters?.date_to ?? ''}
+                    searchPlaceholder="Cari role..."
+                    showDateFilter
+                />
 
                 {roles.length === 0 ? (
                     <div className="border border-[var(--border-default)] bg-[var(--neutral-primary)]">

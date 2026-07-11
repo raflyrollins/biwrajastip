@@ -44,7 +44,6 @@ class PackageController extends Controller
 
                 if ($scopes->contains('packages.scope.transit')) {
                     $q->orWhereIn('status', [
-                        PackageStatus::Batched->value,
                         PackageStatus::HeadingToPort->value,
                         PackageStatus::AtPort->value,
                         PackageStatus::InTransit->value,
@@ -63,9 +62,30 @@ class PackageController extends Controller
 
         $search = request('search');
         if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->whereFullText(['tracking_number', 'receiver_name', 'sender_name', 'description'], $search, ['mode' => 'boolean']);
-            });
+            try {
+                $query->where(function ($q) use ($search) {
+                    $q->whereFullText(['tracking_number', 'receiver_name', 'sender_name', 'description'], $search, ['mode' => 'boolean']);
+                });
+            } catch (\Throwable) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('tracking_number', 'like', "%{$search}%")
+                      ->orWhere('receiver_name', 'like', "%{$search}%")
+                      ->orWhere('sender_name', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+        }
+
+        if ($dateFrom = request('date_from')) {
+            $query->whereDate('created_at', '>=', $dateFrom);
+        }
+
+        if ($dateTo = request('date_to')) {
+            $query->whereDate('created_at', '<=', $dateTo);
+        }
+
+        if ($year = request('year')) {
+            $query->whereYear('created_at', $year);
         }
 
         $perPage = min((int) request('per_page', 20), 100);
@@ -103,7 +123,7 @@ class PackageController extends Controller
 
         $zone = Zone::where('uuid', $validated['zone_id'])->firstOrFail();
 
-        auth()->user()->packages()->create([
+        $package = auth()->user()->packages()->create([
             'sender_name' => $validated['sender_name'],
             'sender_phone' => $validated['sender_phone'],
             'receiver_name' => $validated['receiver_name'],
@@ -116,6 +136,10 @@ class PackageController extends Controller
             'width_estimated' => $validated['width_estimated'] ?? null,
             'height_estimated' => $validated['height_estimated'] ?? null,
             'status' => PackageStatus::WaitingForCollection,
+        ]);
+
+        $package->update([
+            'tracking_number_biwra' => 'BWR'.str_pad((string) $package->id, 8, '0', STR_PAD_LEFT),
         ]);
 
         return redirect()->route('dashboard.packages')->with('success', 'Paket berhasil dibuat.');

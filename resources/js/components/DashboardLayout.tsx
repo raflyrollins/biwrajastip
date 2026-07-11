@@ -57,8 +57,18 @@ export default function DashboardLayout({
 
                 {/* ── Main content ── */}
                 <main className="min-w-0 flex-1 bg-[var(--neutral-secondary-soft)] p-6 md:p-8">
-                    {children}
+                    <div id="dashboard-content" className="w-full">
+                        {children}
+                    </div>
                 </main>
+
+                <style>{`
+                    #dashboard-content > .mx-auto,
+                    #dashboard-content form.mx-auto {
+                        margin-left: 0 !important;
+                        margin-right: auto !important;
+                    }
+                `}</style>
             </div>
         </div>
     );

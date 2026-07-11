@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasFilters;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -11,9 +12,15 @@ use Inertia\Inertia;
 
 class UserController extends Controller
 {
-    public function index()
+    use HasFilters;
+
+    public function index(Request $request)
     {
-        $users = User::with('roles')->orderByDesc('created_at')->get();
+        $query = User::with('roles')->orderByDesc('created_at');
+
+        $this->applyFilters($query, $request, ['name', 'email']);
+
+        $users = $query->get();
 
         return Inertia::render('dashboard/users/Index', [
             'users' => $users,

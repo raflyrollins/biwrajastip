@@ -4,6 +4,7 @@ import { Pencil, Trash2 } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { UserEmpty } from '@/components/EmptyIllustrations';
 import EmptyState from '@/components/EmptyState';
+import SearchFilters from '@/components/ui/SearchFilters';
 import { useAlert, useConfirm } from '@/contexts/AlertContext';
 import { useCan } from '@/lib/permissions';
 
@@ -18,9 +19,10 @@ interface User {
 
 interface UsersIndexProps {
     users: User[];
+    filters?: { search?: string; date_from?: string; date_to?: string; year?: string };
 }
 
-export default function UsersIndex({ users }: UsersIndexProps) {
+export default function UsersIndex({ users, filters }: UsersIndexProps) {
     const canCreate = useCan('users.create');
     const canUpdate = useCan('users.update');
     const canDelete = useCan('users.delete');
@@ -61,6 +63,15 @@ export default function UsersIndex({ users }: UsersIndexProps) {
                         </Link>
                     )}
                 </div>
+
+                <SearchFilters
+                    baseRoute="/dashboard/users"
+                    search={filters?.search ?? ''}
+                    dateFrom={filters?.date_from ?? ''}
+                    dateTo={filters?.date_to ?? ''}
+                    searchPlaceholder="Cari nama atau email..."
+                    showDateFilter
+                />
 
                 {users.length === 0 ? (
                     <div className="border border-[var(--border-default)] bg-[var(--neutral-primary)]">
