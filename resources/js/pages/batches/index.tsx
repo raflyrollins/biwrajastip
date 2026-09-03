@@ -1,8 +1,10 @@
-import { Head } from '@inertiajs/react';
-import { PackageX } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { PackageSearch, PackageX } from 'lucide-react';
+import { type FormEvent, useState, type ReactNode } from 'react';
 import AppLayout from '@/layouts/AppLayout';
+import { Button } from '@/components/Button';
 import Pagination from '@/components/Pagination';
+import { StatusFilter } from '@/components/StatusFilter';
 import type { PaginationMeta } from '@/types';
 
 type BatchRow = {
@@ -15,12 +17,17 @@ type BatchRow = {
     created_at: string;
 };
 
+type Filters = {
+    status: string[];
+};
+
 type BatchIndexProps = {
     batches: {
         data: BatchRow[];
         meta: PaginationMeta;
     };
     statusLabels: Record<string, string>;
+    filters: Filters;
 };
 
 function formatDate(value: string | null): string {
@@ -29,8 +36,20 @@ function formatDate(value: string | null): string {
 }
 
 export default function Batches(props: BatchIndexProps) {
-    const { batches, statusLabels } = props;
+    const { batches, statusLabels, filters } = props;
     const rows = batches.data;
+
+    const [status, setStatus] = useState<string[]>(filters.status);
+
+    const applyFilters = (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const params: Record<string, string> = {};
+        if (status.length > 0) params.status = status.join(',');
+        router.get('/batches', params, {
+            preserveScroll: true,
+            replace: true,
+        });
+    };
 
     return (
         <>
@@ -44,14 +63,40 @@ export default function Batches(props: BatchIndexProps) {
                     </p>
                 </div>
 
+                {/* Filter bar */}
+                <form
+                    onSubmit={applyFilters}
+                    className="border-border-default bg-neutral-primary flex flex-col gap-3 border p-4 sm:flex-row sm:items-end sm:gap-4"
+                >
+                    <div className="w-full sm:w-64">
+                        <StatusFilter
+                            value={status}
+                            onChange={setStatus}
+                            options={statusLabels}
+                        />
+                    </div>
+
+                    <Button type="submit" className="w-full sm:w-auto">
+                        Terapkan
+                    </Button>
+                </form>
+
                 {rows.length === 0 ? (
                     <div className="border-border-default bg-neutral-primary border p-10 text-center">
-                        <PackageX className="text-brand mx-auto h-10 w-10" />
+                        {filters.status.length > 0 ? (
+                            <PackageSearch className="text-brand mx-auto h-10 w-10" />
+                        ) : (
+                            <PackageX className="text-brand mx-auto h-10 w-10" />
+                        )}
                         <p className="text-heading mt-4 font-medium">
-                            Belum ada batch
+                            {filters.status.length > 0
+                                ? 'Tidak ada batch yang cocok'
+                                : 'Belum ada batch'}
                         </p>
                         <p className="text-body mt-1 text-sm">
-                            Batch yang dibuat akan tampil di sini.
+                            {filters.status.length > 0
+                                ? 'Coba ubah filter pencarian Anda.'
+                                : 'Batch yang dibuat akan tampil di sini.'}
                         </p>
                     </div>
                 ) : (
@@ -112,9 +157,7 @@ export default function Batches(props: BatchIndexProps) {
                     </section>
                 )}
 
-                {batches.meta.last_page > 1 && (
-                    <Pagination meta={batches.meta} />
-                )}
+                <Pagination meta={batches.meta} />
             </div>
         </>
     );

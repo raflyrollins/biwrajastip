@@ -1,9 +1,10 @@
-import { Head } from '@inertiajs/react';
-import { PackagePlus, PackageSearch } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import { PackagePlus, PackageSearch, Search } from 'lucide-react';
+import { type FormEvent, useState, type ReactNode } from 'react';
 import AppLayout from '@/layouts/AppLayout';
 import { Button } from '@/components/Button';
 import Pagination from '@/components/Pagination';
+import { StatusFilter } from '@/components/StatusFilter';
 import type { PaginationMeta } from '@/types';
 
 type PackageRow = {
@@ -16,6 +17,11 @@ type PackageRow = {
     created_at: string;
 };
 
+type Filters = {
+    search: string;
+    status: string[];
+};
+
 type PackageIndexProps = {
     packages: {
         data: PackageRow[];
@@ -23,11 +29,27 @@ type PackageIndexProps = {
     };
     statusLabels: Record<string, string>;
     allowCreate: boolean;
+    filters: Filters;
 };
 
 export default function Packages(props: PackageIndexProps) {
-    const { packages, statusLabels, allowCreate } = props;
+    const { packages, statusLabels, allowCreate, filters } = props;
     const rows = packages.data;
+
+    const [status, setStatus] = useState<string[]>(filters.status);
+
+    const applyFilters = (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const data = new FormData(e.currentTarget);
+        const search = (data.get('search') as string) ?? '';
+        const params: Record<string, string> = {};
+        if (search) params.search = search;
+        if (status.length > 0) params.status = status.join(',');
+        router.get('/packages', params, {
+            preserveScroll: true,
+            replace: true,
+        });
+    };
 
     return (
         <>
@@ -44,21 +66,65 @@ export default function Packages(props: PackageIndexProps) {
                         </p>
                     </div>
                     {allowCreate && (
-                        <Button type="button">
-                            <PackagePlus className="h-5 w-5" />
-                            Daftar Paket Baru
-                        </Button>
+                        <Link href="/packages/create">
+                            <Button type="button" className="w-full sm:w-auto">
+                                <PackagePlus className="h-5 w-5" />
+                                Daftar Paket Baru
+                            </Button>
+                        </Link>
                     )}
                 </div>
+
+                {/* Filter bar */}
+                <form
+                    onSubmit={applyFilters}
+                    className="border-border-default bg-neutral-primary flex flex-col gap-3 border p-4 sm:flex-row sm:items-end sm:gap-4"
+                >
+                    <div className="flex-1">
+                        <label
+                            htmlFor="pkg-search"
+                            className="text-heading mb-1.5 block text-sm font-medium"
+                        >
+                            Cari
+                        </label>
+                        <div className="relative">
+                            <Search className="text-body-subtle pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <input
+                                id="pkg-search"
+                                name="search"
+                                type="search"
+                                defaultValue={filters.search}
+                                placeholder="No. resi / nama penerima"
+                                className="bg-neutral-secondary-medium text-heading placeholder:text-body border-border-default-medium focus:border-brand focus:ring-brand w-full rounded-none border py-2.5 pr-3 pl-9 text-sm shadow-xs transition-colors duration-200 focus:ring-1 focus:outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="w-full sm:w-64">
+                        <StatusFilter
+                            value={status}
+                            onChange={setStatus}
+                            options={statusLabels}
+                        />
+                    </div>
+
+                    <Button type="submit" className="w-full sm:w-auto">
+                        Terapkan
+                    </Button>
+                </form>
 
                 {rows.length === 0 ? (
                     <div className="border-border-default bg-neutral-primary border p-10 text-center">
                         <PackageSearch className="text-brand mx-auto h-10 w-10" />
                         <p className="text-heading mt-4 font-medium">
-                            Belum ada paket
+                            {filters.search || filters.status.length > 0
+                                ? 'Tidak ada paket yang cocok'
+                                : 'Belum ada paket'}
                         </p>
                         <p className="text-body mt-1 text-sm">
-                            Paket yang terdaftar akan tampil di sini.
+                            {filters.search || filters.status.length > 0
+                                ? 'Coba ubah filter pencarian Anda.'
+                                : 'Paket yang terdaftar akan tampil di sini.'}
                         </p>
                     </div>
                 ) : (
@@ -122,9 +188,7 @@ export default function Packages(props: PackageIndexProps) {
                     </section>
                 )}
 
-                {packages.meta.last_page > 1 && (
-                    <Pagination meta={packages.meta} />
-                )}
+                <Pagination meta={packages.meta} />
             </div>
         </>
     );

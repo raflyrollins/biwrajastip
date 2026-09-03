@@ -127,4 +127,99 @@ class EntityScopes
 
         return $query;
     }
+
+    /**
+     * Statuses the user may filter by for packages.
+     *
+     * @return list<string>
+     */
+    public function allowedPackageStatuses(User $user): array
+    {
+        /** @var array<int, string> $roles */
+        $roles = $user->getRoleNames()->all();
+
+        if (in_array('staff-surabaya', $roles, true)) {
+            return [
+                PackageStatus::Registered->value,
+                PackageStatus::Collected->value,
+                PackageStatus::Processed->value,
+                PackageStatus::PendingPayment->value,
+                PackageStatus::Paid->value,
+                PackageStatus::Bagged->value,
+                PackageStatus::Batched->value,
+                PackageStatus::PortArrived->value,
+                PackageStatus::OnGoing->value,
+            ];
+        }
+
+        if (in_array('staff-ende', $roles, true)) {
+            return [
+                PackageStatus::Unbatched->value,
+                PackageStatus::Unbagged->value,
+                PackageStatus::Ready->value,
+                PackageStatus::Delivered->value,
+                PackageStatus::Irregular->value,
+            ];
+        }
+
+        // admin + customer: all statuses
+        return array_map(fn (PackageStatus $s) => $s->value, PackageStatus::cases());
+    }
+
+    /**
+     * Statuses the user may filter by for bags.
+     *
+     * @return list<string>
+     */
+    public function allowedBagStatuses(User $user): array
+    {
+        /** @var array<int, string> $roles */
+        $roles = $user->getRoleNames()->all();
+
+        if (in_array('staff-surabaya', $roles, true)) {
+            return [
+                BagStatus::Draft->value,
+                BagStatus::Bagged->value,
+                BagStatus::Batched->value,
+            ];
+        }
+
+        if (in_array('staff-ende', $roles, true)) {
+            return [
+                BagStatus::Unbagged->value,
+                BagStatus::Complete->value,
+            ];
+        }
+
+        return array_map(fn (BagStatus $s) => $s->value, BagStatus::cases());
+    }
+
+    /**
+     * Statuses the user may filter by for batches.
+     *
+     * @return list<string>
+     */
+    public function allowedBatchStatuses(User $user): array
+    {
+        /** @var array<int, string> $roles */
+        $roles = $user->getRoleNames()->all();
+
+        if (in_array('staff-surabaya', $roles, true)) {
+            return [
+                BatchStatus::Draft->value,
+                BatchStatus::Batched->value,
+                BatchStatus::PortArrived->value,
+                BatchStatus::OnGoing->value,
+            ];
+        }
+
+        if (in_array('staff-ende', $roles, true)) {
+            return [
+                BatchStatus::Unbatched->value,
+                BatchStatus::Complete->value,
+            ];
+        }
+
+        return array_map(fn (BatchStatus $s) => $s->value, BatchStatus::cases());
+    }
 }

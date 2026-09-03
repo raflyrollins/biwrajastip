@@ -42,6 +42,7 @@ class DatabaseSeeder extends Seeder
         ])->assignRole(Role::StaffEnde->value);
 
         $this->call([
+            DeliveryZoneSeeder::class,
             DemoDataSeeder::class,
         ]);
     }

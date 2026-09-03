@@ -209,7 +209,7 @@ export default function AppLayout({ title, children }: AppLayoutProps) {
                     </div>
                 )}
 
-                <main className={cn('flex-1 p-4 sm:p-6 lg:p-8')}>
+                <main className="min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6 lg:p-8">
                     <h1 className="text-heading mb-6 text-xl font-bold lg:hidden">
                         {title}
                     </h1>

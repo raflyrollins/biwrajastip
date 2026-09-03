@@ -33,6 +33,14 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('permission:'.Permission::MenuPackages->value)
         ->name('packages.index');
 
+    Route::get('/packages/create', [PackageController::class, 'create'])
+        ->middleware('permission:'.Permission::ActionPackagesCreate->value)
+        ->name('packages.create');
+
+    Route::post('/packages', [PackageController::class, 'store'])
+        ->middleware('permission:'.Permission::ActionPackagesCreate->value)
+        ->name('packages.store');
+
     Route::get('/bags', [BagController::class, 'index'])
         ->middleware('permission:'.Permission::MenuBags->value)
         ->name('bags.index');

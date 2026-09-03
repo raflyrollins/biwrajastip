@@ -23,7 +23,7 @@ class PackageFactory extends Factory
             'customer_id' => User::factory(),
             'status' => PackageStatus::Registered,
             'receiver_name' => 'biwrajastip ('.strtolower(fake()->name()).')',
-            'collecting_address' => 'Jl. Combo Driyorejo, Surabaya',
+            'delivery_address' => 'Jl. Kelimutu, Ende',
         ];
     }
 

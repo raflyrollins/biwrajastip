@@ -22,7 +22,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $store_tracking_number
  * @property string|null $biwrajastip_tracking_number
  * @property string|null $receiver_name
- * @property string|null $collecting_address
+ * @property string|null $delivery_address
  * @property string|null $estimated_weight_kg
  * @property string|null $estimated_length_cm
  * @property string|null $estimated_width_cm
@@ -49,7 +49,7 @@ use Illuminate\Support\Carbon;
     'store_tracking_number',
     'biwrajastip_tracking_number',
     'receiver_name',
-    'collecting_address',
+    'delivery_address',
     'estimated_weight_kg',
     'estimated_length_cm',
     'estimated_width_cm',
