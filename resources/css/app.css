@@ -3,9 +3,136 @@
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
     --font-sans:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
-        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-        'Noto Color Emoji';
+        'Gabarito', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* ---- Radius: sharp corners everywhere (0px) ---- */
+    --radius-base: 0px;
+    --radius-default: 0px;
+    --radius-sm: 0px;
+    --radius-full: 0px;
+
+    /* ---- Brand (pink/magenta) ---- */
+    --color-brand-softer: #fff0f6;
+    --color-brand-soft: #ffd9e8;
+    --color-brand: #e4006f;
+    --color-brand-medium: #ff9ec8;
+    --color-brand-strong: #c0005e;
+
+    /* ---- Neutral backgrounds ---- */
+    --color-neutral-primary-soft: #ffffff;
+    --color-neutral-primary: #ffffff;
+    --color-neutral-primary-medium: #ffffff;
+    --color-neutral-primary-strong: #ffffff;
+    --color-neutral-secondary-soft: #fffafc;
+    --color-neutral-secondary: #fffafc;
+    --color-neutral-secondary-medium: #fffafc;
+    --color-neutral-secondary-strong: #fffafc;
+    --color-neutral-tertiary-soft: #fdf1f5;
+    --color-neutral-tertiary: #fdf1f5;
+    --color-neutral-tertiary-medium: #fdf1f5;
+    --color-neutral-quaternary: #f6d9e6;
+    --color-gray: #e7c6d7;
+
+    /* ---- Status ---- */
+    --color-success-soft: #e6fff5;
+    --color-success: #00cc88;
+    --color-success-medium: #b8ffe0;
+    --color-success-strong: #00a86b;
+    --color-danger-soft: #fff0f0;
+    --color-danger: #ec4747;
+    --color-danger-medium: #ffdada;
+    --color-danger-strong: #d43030;
+    --color-warning-soft: #fff5eb;
+    --color-warning: #ff8c42;
+    --color-warning-medium: #ffe0c4;
+    --color-warning-strong: #e86b14;
+
+    /* ---- Utility ---- */
+    --color-dark: #30061f;
+    --color-dark-strong: #200414;
+    --color-disabled: #fdf1f5;
+
+    /* ---- Accent ---- */
+    --color-accent-purple: #e4006f;
+    --color-accent-sky: #00aaff;
+    --color-accent-teal: #00cc88;
+    --color-accent-pink: #ff3b8b;
+    --color-accent-cyan: #00d4e0;
+    --color-accent-fuchsia: #d946ef;
+    --color-accent-indigo: #5b4dff;
+    --color-accent-orange: #ff8c42;
+
+    /* ---- Text ---- */
+    --color-heading: #2e0a1e;
+    --color-body: #6b3350;
+    --color-body-subtle: #7a4a62;
+    --color-on-brand: #ffffff;
+    --color-on-brand-muted: #fff0f6;
+    --color-fg-brand: #e4006f;
+    --color-fg-brand-strong: #c0005e;
+    --color-fg-success-strong: #004f3b;
+    --color-fg-danger-strong: #d43030;
+    --color-fg-warning: #cc5500;
+    --color-fg-disabled: #c9a2b6;
+
+    /* ---- Borders ---- */
+    --color-border-default: #f2d9e6;
+    --color-border-default-medium: #f2d9e6;
+    --color-border-default-strong: #f2d9e6;
+    --color-border-brand: #e4006f;
+    --color-border-buffer: #ffffff;
+    --color-border-muted: #fffafc;
+    --color-border-light-subtle: #fdf1f5;
+
+    /* ---- Shadows ---- */
+    --shadow-xs: 0 1px 3px 0 rgb(0 0 0 / 0.06);
+    --shadow-sm:
+        0 2px 4px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.08);
+    --shadow-md:
+        0 6px 10px -2px rgb(0 0 0 / 0.1), 0 3px 6px -3px rgb(0 0 0 / 0.08);
+    --shadow-lg:
+        0 12px 20px -4px rgb(0 0 0 / 0.1), 0 6px 8px -4px rgb(0 0 0 / 0.08);
+    --shadow-xl:
+        0 24px 32px -6px rgb(0 0 0 / 0.12), 0 10px 14px -6px rgb(0 0 0 / 0.08);
+}
+
+/* ---- Dark mode token overrides (automatic via .dark) ---- */
+.dark {
+    --color-neutral-primary-soft: #16151a;
+    --color-neutral-primary: #101015;
+    --color-neutral-primary-medium: #201c26;
+    --color-neutral-primary-strong: #2d2632;
+    --color-neutral-secondary-soft: #16151a;
+    --color-neutral-secondary: #101015;
+    --color-neutral-secondary-medium: #201c26;
+    --color-neutral-secondary-strong: #2d2632;
+    --color-neutral-tertiary-soft: #16151a;
+    --color-neutral-tertiary: #201c26;
+    --color-neutral-tertiary-medium: #2d2632;
+    --color-neutral-quaternary: #372c3d;
+    --color-heading: #f8fafc;
+    --color-body: #e2e8f0;
+    --color-body-subtle: #cbd5e1;
+    --color-fg-brand: #ff8cc0;
+    --color-fg-brand-strong: #ffb3d4;
+    --color-border-default: #3a3344;
+    --color-border-default-medium: #47404f;
+    --color-border-default-strong: #58505f;
+    --color-border-brand: #ff8cc0;
+    --color-border-buffer: #101015;
+    --color-disabled: #2d2632;
+}
+
+/* Smooth theme transition on the whole shell */
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    @apply bg-neutral-primary-soft text-body antialiased;
 }

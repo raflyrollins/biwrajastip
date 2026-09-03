@@ -40,5 +40,9 @@ class DatabaseSeeder extends Seeder
             'email' => 'staff-ende@biwrajastip.test',
             'password' => 'password',
         ])->assignRole(Role::StaffEnde->value);
+
+        $this->call([
+            DemoDataSeeder::class,
+        ]);
     }
 }

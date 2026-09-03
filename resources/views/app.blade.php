@@ -8,6 +8,28 @@
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
+        <script>
+            // Apply the persisted theme before paint to avoid a flash of the
+            // wrong mode on full page loads. Modes: `light`, `dark`, `system`
+            // (default = follow the operating system preference).
+            (function () {
+                try {
+                    var stored = localStorage.getItem('biwrajastip-theme');
+                    var dark = stored === 'dark';
+                    if (stored === 'system' || stored === null) {
+                        dark = window.matchMedia(
+                            '(prefers-color-scheme: dark)',
+                        ).matches;
+                    }
+                    if (dark) {
+                        document.documentElement.classList.add('dark');
+                    }
+                } catch (e) {
+                    /* ignore */
+                }
+            })();
+        </script>
+
         @fonts
 
         @viteReactRefresh
