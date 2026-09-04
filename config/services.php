@@ -35,4 +35,25 @@ return [
         ],
     ],
 
+    'google' => [
+        'client_id' => env('OAUTH_CLIENT_ID'),
+        'client_secret' => env('OAUTH_CLIENT_SECRET'),
+        'redirect' => env('OAUTH_REDIRECT_URI', '/auth/google/callback'),
+    ],
+
+    'midtrans' => [
+        'server_key' => env('MIDTRANS_SERVER_KEY'),
+        'client_key' => env('MIDTRANS_CLIENT_KEY'),
+        'is_production' => env('MIDTRANS_IS_PRODUCTION', false),
+        'merchant_id' => env('MIDTRANS_MERCHANT_ID'),
+        'snap_url' => env('MIDTRANS_IS_PRODUCTION', false)
+            ? 'https://app.midtrans.com/snap/v1/transactions'
+            : 'https://app.sandbox.midtrans.com/snap/v1/transactions',
+        'snap_script' => env('MIDTRANS_IS_PRODUCTION', false)
+            ? 'https://app.midtrans.com/snap/snap.js'
+            : 'https://app.sandbox.midtrans.com/snap/snap.js',
+        'notification_url' => env('APP_URL').'/api/v1/midtrans/notification',
+        'finish_redirect_url' => env('APP_URL').'/packages',
+    ],
+
 ];

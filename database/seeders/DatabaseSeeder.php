@@ -43,7 +43,6 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             DeliveryZoneSeeder::class,
-            DemoDataSeeder::class,
         ]);
     }
 }

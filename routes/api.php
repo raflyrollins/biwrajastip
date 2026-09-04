@@ -3,11 +3,15 @@
 use App\Enums\Permission;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BagApiController;
+use App\Http\Controllers\Api\MidtransWebhookController;
 use App\Http\Controllers\Api\PackageApiController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
     Route::post('/auth/login', [AuthController::class, 'login'])->name('api.auth.login');
+
+    Route::post('midtrans/notification', [MidtransWebhookController::class, 'notification'])
+        ->name('api.midtrans.notification');
 
     Route::middleware('auth:sanctum')->group(function (): void {
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('api.auth.logout');

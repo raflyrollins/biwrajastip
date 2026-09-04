@@ -8,10 +8,10 @@ use App\Models\Setting;
 /**
  * Encapsulates the pricing / weight business rules for biwrajastip.
  *
- * Fee model: biaya jastip is a FLAT fee per order (ongkir Surabaya → Ende);
- * biaya antar is also FLAT per delivery zone (not multiplied by weight) so the
- * service keeps ongkir cheap. Parcels picked up at the Ende office (no zone)
- * pay no delivery fee.
+ * Fee model: biaya jastip is a FLAT per-kg fee (ongkir Surabaya → Ende) that
+ * is MULTIPLIED by the billed weight; biaya antar is FLAT per delivery zone
+ * and is NOT weight-scaled. The total tagihan = (biaya jastip × billed weight)
+ * + biaya antar. Parcels picked up at the Ende office (no zone) pay no antar.
  *
  * Weight is entered in GRAMS. The chargeable (billed) weight is the higher of
  * the scaled weight and the volumetric weight (volume cm³ / 6000), then
@@ -92,9 +92,9 @@ class Pricing
         return $rate ? (float) $rate->price_per_kg : 0.0;
     }
 
-    public function totalAmount(float $shippingFee, float $deliveryFee): float
+    public function totalAmount(float $shippingFeeKg, float $deliveryFee, float $billedWeightKg): float
     {
-        return $shippingFee + $deliveryFee;
+        return ($shippingFeeKg * $billedWeightKg) + $deliveryFee;
     }
 
     /**
@@ -110,14 +110,15 @@ class Pricing
         $volumetricKg = $this->volumetricGrams($lengthCm, $widthCm, $heightCm) / 1000;
         $billedKg = $this->billedWeightKg($weightGrams, $lengthCm, $widthCm, $heightCm);
         $deliveryFee = $this->deliveryFee($zone);
-        $shippingFee = $this->flatShippingFee();
+        $shippingFeeKg = $this->flatShippingFee();
+        $shippingFee = $shippingFeeKg * $billedKg;
 
         return [
             'billed_weight_kg' => $billedKg,
             'volumetric_weight_kg' => $volumetricKg,
             'shipping_fee' => $shippingFee,
             'delivery_fee' => $deliveryFee,
-            'total_amount' => $this->totalAmount($shippingFee, $deliveryFee),
+            'total_amount' => $this->totalAmount($shippingFeeKg, $deliveryFee, $billedKg),
         ];
     }
 

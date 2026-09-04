@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\PackageStatus;
+use App\Events\PackageStatusUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ScanRequest;
 use App\Models\Package;
@@ -68,6 +69,8 @@ class PackageApiController extends Controller
             }
 
             $package->update(['status' => PackageStatus::Collected]);
+
+            PackageStatusUpdated::dispatch($package->uuid, $package->status->value);
 
             $collected[] = $this->serialize($package);
         }

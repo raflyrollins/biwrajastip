@@ -106,13 +106,15 @@ export default function CreatePackage(props: CreatePackageProps) {
             toNumber(height),
         );
         const delivery = zoneFlatFee(zone);
+        const shipping = flatShippingFee * billedKg;
         return {
             billedKg,
             volumetricKg:
                 (toNumber(length) * toNumber(width) * toNumber(height)) /
                 VOLUMETRIC_DIVISOR,
+            shipping,
             delivery,
-            total: flatShippingFee + delivery,
+            total: shipping + delivery,
         };
     }, [
         selectedZoneId,
@@ -162,9 +164,10 @@ export default function CreatePackage(props: CreatePackageProps) {
                     <TextInput
                         id="receiver_name"
                         name="receiver_name"
-                        label="Nama Penerima (biwrajastip)"
-                        placeholder="cth: biwrajastip (rafly akbar)"
+                        label="Nama Penerima"
+                        placeholder="cth: biwra rafly"
                         required
+                        hint="Nama penerima yang menerima di Ende, personal atau organisasi. Pastikan saat memesan barang secara online, nama penerima di toko diisi: biwrajastip/nama_penerima_di_ende"
                     />
 
                     <SearchableSelect
@@ -269,11 +272,14 @@ export default function CreatePackage(props: CreatePackageProps) {
                                 </dd>
                             </div>
                             <div className="flex justify-between">
-                                <dt>Biaya jastip (flat)</dt>
-                                <dd>{formatRp(flatShippingFee)}</dd>
+                                <dt>
+                                    Biaya jastip ({formatRp(flatShippingFee)}
+                                    /kg)
+                                </dt>
+                                <dd>{formatRp(estimate.shipping)}</dd>
                             </div>
                             <div className="flex justify-between">
-                                <dt>Biaya antar</dt>
+                                <dt>Biaya antar (flat zona)</dt>
                                 <dd>{formatRp(estimate.delivery)}</dd>
                             </div>
                             <div className="border-border-default border-t pt-2">
@@ -290,8 +296,9 @@ export default function CreatePackage(props: CreatePackageProps) {
                         <p className="text-body-subtle text-xs">
                             Berat tagihan diambil dari nilai lebih besar antara
                             berat timbang vs berat volume (dibagi 6000),
-                            dibulatkan ke atas melewati 300 gram. Biaya antar
-                            flat per zona.
+                            dibulatkan ke atas melewati 300 gram. Total = (biaya
+                            jastip × berat tagihan) + biaya antar (flat per
+                            zona).
                         </p>
                     </div>
 

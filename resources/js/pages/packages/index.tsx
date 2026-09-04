@@ -1,10 +1,12 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { PackagePlus, PackageSearch, Search } from 'lucide-react';
+import { FileText, PackagePlus, PackageSearch, Search } from 'lucide-react';
 import { type FormEvent, useState, type ReactNode } from 'react';
 import AppLayout from '@/layouts/AppLayout';
 import { Button } from '@/components/Button';
+import { useRealtimeSectionRefresh } from '@/hooks/useRealtimeSectionRefresh';
 import Pagination from '@/components/Pagination';
 import { StatusFilter } from '@/components/StatusFilter';
+import payments from '@/routes/payments';
 import type { PaginationMeta } from '@/types';
 
 type PackageRow = {
@@ -15,6 +17,10 @@ type PackageRow = {
     status: string;
     total_amount: string | null;
     created_at: string;
+    can_pay: boolean;
+    has_pending_payment: boolean;
+    can_process: boolean;
+    can_print_receipt: boolean;
 };
 
 type Filters = {
@@ -29,12 +35,20 @@ type PackageIndexProps = {
     };
     statusLabels: Record<string, string>;
     allowCreate: boolean;
+    allowProcess: boolean;
     filters: Filters;
 };
 
 export default function Packages(props: PackageIndexProps) {
-    const { packages, statusLabels, allowCreate, filters } = props;
+    const { packages, statusLabels, allowCreate, allowProcess, filters } =
+        props;
     const rows = packages.data;
+
+    useRealtimeSectionRefresh([
+        { name: 'packages', event: '.package.created' },
+        { name: 'packages', event: '.package.status.updated' },
+        { name: 'packages', event: '.payment.updated' },
+    ]);
 
     const [status, setStatus] = useState<string[]>(filters.status);
 
@@ -148,6 +162,9 @@ export default function Packages(props: PackageIndexProps) {
                                         <th className="px-5 py-3 font-medium">
                                             Didaftarkan
                                         </th>
+                                        <th className="px-5 py-3 font-medium">
+                                            Aksi
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -179,6 +196,54 @@ export default function Packages(props: PackageIndexProps) {
                                                 {new Date(
                                                     pkg.created_at,
                                                 ).toLocaleDateString('id-ID')}
+                                            </td>
+                                            <td className="px-5 py-3">
+                                                <div className="flex items-center gap-3">
+                                                    {allowProcess &&
+                                                    pkg.can_process ? (
+                                                        <Link
+                                                            href={`/packages/${pkg.uuid}/process`}
+                                                        >
+                                                            <span className="text-brand hover:underline">
+                                                                Proses
+                                                            </span>
+                                                        </Link>
+                                                    ) : pkg.can_pay ? (
+                                                        <Link
+                                                            href={payments.checkout.url(
+                                                                pkg.uuid,
+                                                            )}
+                                                        >
+                                                            <span className="text-brand hover:underline">
+                                                                Bayar
+                                                            </span>
+                                                        </Link>
+                                                    ) : pkg.has_pending_payment ? (
+                                                        <Link
+                                                            href={payments.show.url(
+                                                                pkg.uuid,
+                                                            )}
+                                                        >
+                                                            <span className="text-brand hover:underline">
+                                                                Lihat Pembayaran
+                                                            </span>
+                                                        </Link>
+                                                    ) : pkg.can_print_receipt ? (
+                                                        <Link
+                                                            href={`/packages/${pkg.uuid}/receipt`}
+                                                            target="_blank"
+                                                        >
+                                                            <span className="text-brand inline-flex items-center gap-1 hover:underline">
+                                                                <FileText className="h-3.5 w-3.5" />
+                                                                Resi
+                                                            </span>
+                                                        </Link>
+                                                    ) : (
+                                                        <span className="text-body-subtle">
+                                                            —
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}

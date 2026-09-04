@@ -162,6 +162,8 @@ it('shares the accounts menu permissions to the frontend', function (): void {
         'action.batches.schedule',
         'settings.manage',
         'reports.view',
+        'promotions.manage',
+        'promo-codes.manage',
     ];
 
     $this->actingAs($admin)

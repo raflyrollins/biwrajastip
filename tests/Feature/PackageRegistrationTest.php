@@ -61,9 +61,9 @@ it('stores a package and computes pricing for a delivery zone', function () {
         // 2500 g -> residual 500g > 300 -> rounded up to 3.0 kg.
         'estimated_weight_kg' => '2.500',
         'billed_weight_kg' => '3.000',
-        'shipping_fee' => '15000.00',
+        'shipping_fee' => '45000.00',
         'delivery_fee' => '5000.00',
-        'total_amount' => '20000.00',
+        'total_amount' => '50000.00',
     ]);
 });
 
@@ -114,8 +114,9 @@ it('uses the volumetric weight when it exceeds the scaled weight', function () {
         'store_tracking_number' => 'JNE-REF-125',
         'volumetric_weight_kg' => '16.000',
         'billed_weight_kg' => '16.000',
+        'shipping_fee' => '240000.00',
         'delivery_fee' => '5000.00',
-        'total_amount' => '20000.00',
+        'total_amount' => '245000.00',
     ]);
 });
 

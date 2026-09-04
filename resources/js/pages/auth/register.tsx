@@ -3,7 +3,9 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import AuthLayout from '@/components/AuthLayout';
 import { Button } from '@/components/Button';
+import { GoogleOAuthButton } from '@/components/GoogleOAuthButton';
 import { TextInput } from '@/components/TextInput';
+import google from '@/routes/auth/google';
 import { register } from '@/routes';
 
 export default function Register() {
@@ -31,6 +33,16 @@ export default function Register() {
                 subtitle="Mulai titip & kirim barang dari Surabaya ke Ende."
             >
                 <form onSubmit={submit} noValidate className="grid gap-5">
+                    <GoogleOAuthButton href={google.redirect.url()}>
+                        Daftar dengan Google
+                    </GoogleOAuthButton>
+
+                    <div className="text-body flex items-center gap-3 text-xs">
+                        <span className="bg-border h-px flex-1" />
+                        atau
+                        <span className="bg-border h-px flex-1" />
+                    </div>
+
                     <TextInput
                         id="name"
                         label="Nama lengkap"

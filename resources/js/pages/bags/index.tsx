@@ -3,6 +3,7 @@ import { PackageSearch, PackageX } from 'lucide-react';
 import { type FormEvent, useState, type ReactNode } from 'react';
 import AppLayout from '@/layouts/AppLayout';
 import { Button } from '@/components/Button';
+import { useRealtimeSectionRefresh } from '@/hooks/useRealtimeSectionRefresh';
 import Pagination from '@/components/Pagination';
 import { StatusFilter } from '@/components/StatusFilter';
 import type { PaginationMeta } from '@/types';
@@ -32,6 +33,8 @@ type BagIndexProps = {
 export default function Bags(props: BagIndexProps) {
     const { bags, statusLabels, filters } = props;
     const rows = bags.data;
+
+    useRealtimeSectionRefresh([{ name: 'bags', event: '.bag.status.updated' }]);
 
     const [status, setStatus] = useState<string[]>(filters.status);
 

@@ -69,18 +69,31 @@ it('reads the flat shipping fee from settings', function (): void {
     expect((new Pricing)->flatShippingFee())->toBe(15000.0);
 });
 
-it('totals the shipping and delivery fees', function (): void {
-    expect((new Pricing)->totalAmount(15000, 18000))->toBe(33000.0);
+it('totals (jastip x billed weight) plus flat delivery', function (): void {
+    expect((new Pricing)->totalAmount(15000, 18000, 3))->toBe(63000.0);
 });
 
-it('builds an estimate from grams, flat zone fee, and flat jastip fee', function (): void {
+it('builds an estimate from grams, flat zone fee, and jastip per kg', function (): void {
     $zone = makeZoneWithRate(18000);
     Setting::create(['key' => Pricing::FLAT_SHIPPING_FEE_KEY, 'value' => '15000']);
 
-    $estimate = (new Pricing)->estimateFor($zone, 301);
+    // 2.5 kg -> residual 500 g > 300 -> billed 3 kg.
+    $estimate = (new Pricing)->estimateFor($zone, 2500);
 
-    expect($estimate['billed_weight_kg'])->toBe(1.0)
-        ->and($estimate['shipping_fee'])->toBe(15000.0)
+    expect($estimate['billed_weight_kg'])->toBe(3.0)
+        ->and($estimate['shipping_fee'])->toBe(45000.0)
         ->and($estimate['delivery_fee'])->toBe(18000.0)
-        ->and($estimate['total_amount'])->toBe(33000.0);
+        ->and($estimate['total_amount'])->toBe(63000.0);
+});
+
+it('builds an estimate with no delivery fee when there is no zone', function (): void {
+    Setting::create(['key' => Pricing::FLAT_SHIPPING_FEE_KEY, 'value' => '15000']);
+
+    // 1301 g -> residual 301 g > 300 -> billed 2 kg.
+    $estimate = (new Pricing)->estimateFor(null, 1301);
+
+    expect($estimate['billed_weight_kg'])->toBe(2.0)
+        ->and($estimate['shipping_fee'])->toBe(30000.0)
+        ->and($estimate['delivery_fee'])->toBe(0.0)
+        ->and($estimate['total_amount'])->toBe(30000.0);
 });

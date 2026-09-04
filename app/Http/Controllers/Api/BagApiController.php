@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\BagStatus;
 use App\Enums\PackageStatus;
+use App\Events\BagStatusUpdated;
+use App\Events\PackageStatusUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ScanRequest;
 use App\Models\Bag;
@@ -106,10 +108,13 @@ class BagApiController extends Controller
             foreach ($packages as $position => $package) {
                 $bag->packages()->attach($package->id, ['position' => $position + 1]);
                 $package->update(['status' => PackageStatus::Bagged]);
+                PackageStatusUpdated::dispatch($package->uuid, $package->status->value);
             }
 
             return $bag;
         });
+
+        BagStatusUpdated::dispatch($bag->uuid, $bag->status->value);
 
         return response()->json([
             'message' => 'Bag berhasil dibuat.',

@@ -36,6 +36,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $shipping_fee
  * @property string|null $delivery_fee
  * @property string|null $total_amount
+ * @property int $discount_total
+ * @property array<string, mixed>|null $discount_snapshot
  * @property string|null $qr_code
  * @property Carbon|null $paid_at
  * @property string|null $delivery_receipt_path
@@ -62,6 +64,8 @@ use Illuminate\Support\Carbon;
     'billed_weight_kg',
     'shipping_fee',
     'delivery_fee',
+    'discount_total',
+    'discount_snapshot',
     'total_amount',
     'qr_code',
     'paid_at',
@@ -93,6 +97,8 @@ class Package extends Model
             'billed_weight_kg' => 'decimal:3',
             'shipping_fee' => 'decimal:2',
             'delivery_fee' => 'decimal:2',
+            'discount_total' => 'integer',
+            'discount_snapshot' => 'array',
             'total_amount' => 'decimal:2',
             'paid_at' => 'datetime',
             'created_at' => 'datetime',
@@ -145,5 +151,10 @@ class Package extends Model
     public function isPaid(): bool
     {
         return $this->status === PackageStatus::Paid;
+    }
+
+    public function wasDiscountApplied(): bool
+    {
+        return (int) $this->discount_total > 0 && $this->discount_snapshot !== null;
     }
 }

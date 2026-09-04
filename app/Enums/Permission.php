@@ -30,4 +30,8 @@ enum Permission: string
     // Cross-entity
     case SettingsManage = 'settings.manage';
     case ReportsView = 'reports.view';
+
+    // Promo
+    case PromotionsManage = 'promotions.manage';
+    case PromoCodesManage = 'promo-codes.manage';
 }

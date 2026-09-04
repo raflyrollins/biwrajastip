@@ -45,6 +45,14 @@ return [
         'refunded' => 'Dikembalikan',
     ],
 
+    'payment_method' => [
+        'va_bca' => 'BCA Virtual Account',
+        'va_bni' => 'BNI Virtual Account',
+        'va_mandiri' => 'Mandiri Virtual Account',
+        'va_bri' => 'BRI Virtual Account',
+        'qris' => 'QRIS',
+    ],
+
     'irregularity_type' => [
         'label_mismatch' => 'Salah Tempel Resi',
         'wrong_delivery' => 'Paket Salah Diantar',

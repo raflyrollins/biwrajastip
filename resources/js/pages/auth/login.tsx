@@ -3,7 +3,9 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import AuthLayout from '@/components/AuthLayout';
 import { Button } from '@/components/Button';
+import { GoogleOAuthButton } from '@/components/GoogleOAuthButton';
 import { TextInput } from '@/components/TextInput';
+import google from '@/routes/auth/google';
 import { login } from '@/routes';
 
 export default function Login() {
@@ -88,6 +90,16 @@ export default function Login() {
                     <Button type="submit" fullWidth disabled={processing}>
                         Masuk
                     </Button>
+
+                    <div className="text-body flex items-center gap-3 text-xs">
+                        <span className="bg-border h-px flex-1" />
+                        atau
+                        <span className="bg-border h-px flex-1" />
+                    </div>
+
+                    <GoogleOAuthButton href={google.redirect.url()}>
+                        Masuk dengan Google
+                    </GoogleOAuthButton>
 
                     <p className="text-body text-center text-sm">
                         Belum punya akun?{' '}

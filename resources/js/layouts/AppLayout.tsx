@@ -7,7 +7,9 @@ import {
     LogOut,
     Package,
     PackageSearch,
+    Percent,
     Settings,
+    Tags,
     User,
 } from 'lucide-react';
 import { type ComponentType, type ReactNode, useState } from 'react';
@@ -21,6 +23,7 @@ type MenuItem = {
     href: string;
     icon: IconComponent;
     permission?: string;
+    match?: string[];
 };
 
 // Menu definitions are derived from permissions (menu.*), never hardcoded per
@@ -38,18 +41,21 @@ const MENU_ITEMS: MenuItem[] = [
         href: '/packages',
         icon: Package,
         permission: 'menu.packages',
+        match: ['/packages'],
     },
     {
         label: 'Bag',
         href: '/bags',
         icon: FolderArchive,
         permission: 'menu.bags',
+        match: ['/bags'],
     },
     {
         label: 'Batch',
         href: '/batches',
         icon: Boxes,
         permission: 'menu.batches',
+        match: ['/batches'],
     },
     {
         label: 'Laporan',
@@ -62,6 +68,20 @@ const MENU_ITEMS: MenuItem[] = [
         href: '/settings',
         icon: Settings,
         permission: 'settings.manage',
+    },
+    {
+        label: 'Promosi',
+        href: '/promotions',
+        icon: Percent,
+        permission: 'promotions.manage',
+        match: ['/promotions'],
+    },
+    {
+        label: 'Kode Promo',
+        href: '/promo-codes',
+        icon: Tags,
+        permission: 'promo-codes.manage',
+        match: ['/promo-codes'],
     },
 ];
 
@@ -89,7 +109,13 @@ export default function AppLayout({ title, children }: AppLayoutProps) {
         router.post('/logout');
     };
 
-    const isActive = (href: string) => currentPath === href;
+    const isActive = (item: MenuItem) => {
+        if (currentPath === item.href) {
+            return true;
+        }
+        const prefixes = item.match ?? [item.href];
+        return prefixes.some((path) => currentPath.startsWith(`${path}/`));
+    };
 
     const SidebarNav = (
         <nav className="flex h-full flex-col">
@@ -102,7 +128,7 @@ export default function AppLayout({ title, children }: AppLayoutProps) {
 
             <div className="flex-1 space-y-1 px-3 py-2">
                 {visibleItems.map((item) => {
-                    const active = isActive(item.href);
+                    const active = isActive(item);
 
                     return (
                         <Link

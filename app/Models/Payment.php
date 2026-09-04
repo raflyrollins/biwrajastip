@@ -15,23 +15,31 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $uuid
  * @property int $package_id
+ * @property string|null $order_id
  * @property PaymentStatus $status
  * @property string|null $payment_method
+ * @property string|null $payment_type
  * @property int $amount
+ * @property int $admin_fee
  * @property string|null $transaction_id
- * @property array<int, mixed>|null $provider_response
+ * @property array<string, mixed>|null $provider_response
  * @property Carbon|null $paid_at
+ * @property Carbon|null $expired_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
 #[Fillable([
     'package_id',
+    'order_id',
     'status',
     'payment_method',
+    'payment_type',
     'amount',
+    'admin_fee',
     'transaction_id',
     'provider_response',
     'paid_at',
+    'expired_at',
 ])]
 class Payment extends Model
 {
@@ -50,6 +58,7 @@ class Payment extends Model
             'amount' => 'integer',
             'provider_response' => 'array',
             'paid_at' => 'datetime',
+            'expired_at' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
