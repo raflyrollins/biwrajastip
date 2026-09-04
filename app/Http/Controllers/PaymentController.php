@@ -12,7 +12,7 @@ use App\Models\Payment;
 use App\Models\PromoCode;
 use App\Services\MidtransService;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
-use BaconQrCode\Renderer\ImageRenderer\ImageRenderer;
+use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
 use Illuminate\Http\JsonResponse;
@@ -86,6 +86,14 @@ class PaymentController extends Controller
         $orderId = $this->newOrderId($package);
 
         $this->ensureNoPending($package);
+
+        // ensureNoPending may have reconciled a previously-stuck Pending
+        // payment against Midtrans. If it turned out the customer actually
+        // settled a prior transaction, the package is now Paid — do not
+        // create a second payment and risk double charging.
+        if ($package->fresh()->status === PackageStatus::Paid) {
+            throw new RuntimeException('Pembayaran paket ini sudah berhasil.');
+        }
 
         $payment = Payment::create([
             'package_id' => $package->id,
@@ -188,7 +196,7 @@ class PaymentController extends Controller
         if ($discount <= 0) {
             return response()->json([
                 'valid' => false,
-                'message' => 'Total belanja belum memenuhi minimum order (Rp '.$promo->min_order_total->toLocaleString('id-ID').').',
+                'message' => 'Total belanja belum memenuhi minimum order (Rp '.number_format($promo->min_order_total, 0, ',', '.').').',
             ]);
         }
 
@@ -199,6 +207,45 @@ class PaymentController extends Controller
             'type' => $promo->type->value,
             'value' => $promo->value,
             'discount' => $discount,
+        ]);
+    }
+
+    /**
+     * Actively check the payment status with Midtrans (does not rely on the
+     * asynchronous webhook reaching this server — critical on a local URL).
+     *
+     * Returns the reconciled payment status as JSON so the frontend can poll
+     * it while the customer is (or just finished) paying.
+     */
+    public function status(Request $request, Package $package): JsonResponse
+    {
+        $this->authorize($request, $package);
+
+        $payment = Payment::query()
+            ->where('package_id', $package->id)
+            ->orderByDesc('id')
+            ->first();
+
+        if ($payment === null || $payment->order_id === null) {
+            return response()->json(['status' => 'not_found', 'payment_status' => null], 404);
+        }
+
+        try {
+            $payload = $this->midtrans->getStatus($payment->order_id);
+        } catch (Throwable $e) {
+            // Midtrans doesn't know the transaction yet (e.g. newly created).
+            return response()->json([
+                'status' => 'unreachable',
+                'payment_status' => $payment->status->value,
+                'message' => $e->getMessage(),
+            ], 200);
+        }
+
+        $reconciled = $this->midtrans->reconcile($payment, $payload);
+
+        return response()->json([
+            'status' => 'ok',
+            'payment_status' => $reconciled->value ?? $payment->fresh()->status->value,
         ]);
     }
 
@@ -320,14 +367,37 @@ class PaymentController extends Controller
 
     private function ensureNoPending(Package $package): void
     {
-        $exists = Payment::query()
+        $pending = Payment::query()
             ->where('package_id', $package->id)
             ->where('status', PaymentStatus::Pending)
-            ->exists();
+            ->latest('id')
+            ->first();
 
-        if ($exists) {
-            throw new RuntimeException('Masih ada pembayaran yang belum diselesaikan untuk paket ini.');
+        if ($pending === null) {
+            return;
         }
+
+        // A pending payment may be stuck because the webhook never reached us
+        // (e.g. local URL). Actively ask Midtrans for its real status so an
+        // expired/failed transaction is released and the customer can retry.
+        if ($pending->order_id !== null) {
+            try {
+                $this->midtrans->reconcile(
+                    $pending,
+                    $this->midtrans->getStatus($pending->order_id),
+                );
+
+                $pending->refresh();
+
+                if ($pending->status !== PaymentStatus::Pending) {
+                    return;
+                }
+            } catch (Throwable) {
+                // Midtrans is unreachable; fall through to the blocking error.
+            }
+        }
+
+        throw new RuntimeException('Masih ada pembayaran yang belum diselesaikan untuk paket ini. Silakan selesaikan atau tunggu hingga kedaluwarsa, lalu coba lagi.');
     }
 
     private function newOrderId(Package $package): string
@@ -381,7 +451,7 @@ class PaymentController extends Controller
     private function generateQrSvg(string $data): string
     {
         $renderer = new ImageRenderer(
-            new RendererStyle(200, 0, null, null, false),
+            new RendererStyle(200, 0),
             new SvgImageBackEnd,
         );
 

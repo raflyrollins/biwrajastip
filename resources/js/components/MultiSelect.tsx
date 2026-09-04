@@ -1,6 +1,7 @@
 import { Check, ChevronDown, Search, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useViewportPosition } from '@/hooks/useViewportPosition';
 
 export type SelectOption = {
     value: string;
@@ -24,11 +25,10 @@ export function MultiSelect({
     placeholder = 'Pilih...',
     searchPlaceholder = 'Cari...',
 }: MultiSelectProps) {
-    const [open, setOpen] = useState(false);
-    const [dropUp, setDropUp] = useState(false);
     const [search, setSearch] = useState('');
-    const wrapperRef = useRef<HTMLDivElement>(null);
-    const triggerRef = useRef<HTMLDivElement>(null);
+
+    const { triggerRef, dropdownRef, open, toggle, position } =
+        useViewportPosition(4);
 
     const selected = options.filter((o) => value.includes(o.value));
     const first = selected[0] ?? null;
@@ -41,38 +41,12 @@ export function MultiSelect({
         o.label.toLowerCase().includes(search.toLowerCase()),
     );
 
-    useEffect(() => {
-        function onOutside(e: MouseEvent) {
-            if (
-                open &&
-                wrapperRef.current &&
-                !wrapperRef.current.contains(e.target as Node)
-            ) {
-                setOpen(false);
-            }
-        }
-        document.addEventListener('mousedown', onOutside);
-        return () => document.removeEventListener('mousedown', onOutside);
-    }, [open]);
-
-    useEffect(() => {
-        function onKey(e: KeyboardEvent) {
-            if (e.key === 'Escape') setOpen(false);
-        }
-        if (open) document.addEventListener('keydown', onKey);
-        return () => document.removeEventListener('keydown', onKey);
-    }, [open]);
-
-    function toggleOpen() {
-        if (triggerRef.current) {
-            const rect = triggerRef.current.getBoundingClientRect();
-            setDropUp(window.innerHeight - rect.bottom < 280);
-        }
+    function handleToggle() {
         setSearch('');
-        setOpen((prev) => !prev);
+        toggle();
     }
 
-    function toggle(val: string) {
+    function toggleVal(val: string) {
         onChange(
             value.includes(val)
                 ? value.filter((v) => v !== val)
@@ -88,16 +62,18 @@ export function MultiSelect({
                 </label>
             )}
 
-            <div ref={wrapperRef} className="relative">
+            <div
+                ref={triggerRef as React.Ref<HTMLDivElement>}
+                className="relative"
+            >
                 <div
-                    ref={triggerRef}
                     role="button"
                     tabIndex={0}
-                    onClick={toggleOpen}
+                    onClick={handleToggle}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            toggleOpen();
+                            handleToggle();
                         }
                     }}
                     className={cn(
@@ -119,7 +95,7 @@ export function MultiSelect({
                                         type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            toggle(first.value);
+                                            toggleVal(first.value);
                                         }}
                                         className="text-brand hover:text-brand-strong shrink-0 transition-colors"
                                         aria-label={`Hapus ${first.label}`}
@@ -150,12 +126,11 @@ export function MultiSelect({
                     />
                 </div>
 
-                {open && (
+                {open && position && (
                     <div
-                        className={cn(
-                            'border-border-default bg-neutral-primary absolute right-0 left-0 z-50 max-h-64 overflow-auto border shadow-lg',
-                            dropUp ? 'bottom-full mb-1' : 'top-full mt-1',
-                        )}
+                        ref={dropdownRef as React.Ref<HTMLDivElement>}
+                        style={position}
+                        className="border-border-default bg-neutral-primary max-h-64 overflow-auto border shadow-lg"
                     >
                         <div className="border-border-default bg-neutral-primary sticky top-0 border-b p-2">
                             <div className="bg-neutral-secondary-medium border-border-default-medium flex items-center gap-2 border px-3 py-2">
@@ -190,7 +165,7 @@ export function MultiSelect({
                                             <button
                                                 type="button"
                                                 onClick={() =>
-                                                    toggle(option.value)
+                                                    toggleVal(option.value)
                                                 }
                                                 className={cn(
                                                     'flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors',

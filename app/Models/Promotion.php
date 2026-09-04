@@ -62,6 +62,9 @@ class Promotion extends Model
         return 'uuid';
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -69,6 +72,9 @@ class Promotion extends Model
 
     /**
      * Scope: only promotions that are currently active and within their date range.
+     *
+     * @param  Builder<Promotion>  $query
+     * @return Builder<Promotion>
      */
     public function scopeActive(Builder $query): Builder
     {

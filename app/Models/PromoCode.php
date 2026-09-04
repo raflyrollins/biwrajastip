@@ -70,6 +70,9 @@ class PromoCode extends Model
         return 'uuid';
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -78,6 +81,9 @@ class PromoCode extends Model
     /**
      * Scope: only promo codes that are currently active, within their date
      * range, and have not exceeded max_uses.
+     *
+     * @param  Builder<PromoCode>  $query
+     * @return Builder<PromoCode>
      */
     public function scopeActive(Builder $query): Builder
     {

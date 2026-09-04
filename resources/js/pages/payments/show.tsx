@@ -1,6 +1,6 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, CheckCircle2, Clock, Printer, XCircle } from 'lucide-react';
-import { type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import AppLayout from '@/layouts/AppLayout';
 import { Button } from '@/components/Button';
 import { PaymentIcon } from '@/components/PaymentIcon';
@@ -67,6 +67,51 @@ export default function PaymentShow({ package: pkg, payment }: PaymentProps) {
     const Icon = current.icon;
     const isPending = payment.status === 'pending';
     const isSettled = payment.status === 'settled';
+
+    // While pending, actively query Midtrans every few seconds (via the
+    // `payments.status` endpoint) so the status flips to "berhasil" even when
+    // the asynchronous webhook can't reach this server (e.g. a local URL).
+    // The status endpoint reconciles the payment, then we reload the page to
+    // reflect the updated state. Polling stops once a non-pending status is
+    // observed or after ~10 minutes to avoid endless background requests.
+    useEffect(() => {
+        if (!isPending) {
+            return;
+        }
+
+        const checkStatus = () => {
+            fetch(payments.status.url(pkg.uuid), {
+                headers: { Accept: 'application/json' },
+            })
+                .then((res) => res.json())
+                .then((data: { payment_status?: string | null }) => {
+                    if (
+                        data.payment_status &&
+                        data.payment_status !== 'pending'
+                    ) {
+                        clearInterval(interval);
+                        router.reload({ only: ['package', 'payment'] });
+                    }
+                })
+                .catch(() => {
+                    // Transient failure — keep polling.
+                });
+        };
+
+        const interval = window.setInterval(checkStatus, 5000);
+
+        const stop = window.setTimeout(
+            () => {
+                window.clearInterval(interval);
+            },
+            10 * 60 * 1000,
+        );
+
+        return () => {
+            window.clearInterval(interval);
+            window.clearTimeout(stop);
+        };
+    }, [isPending, pkg.uuid]);
 
     return (
         <>
@@ -179,14 +224,47 @@ export default function PaymentShow({ package: pkg, payment }: PaymentProps) {
 
                 <div className="flex gap-3">
                     {isPending && (
-                        <Link
-                            href={payments.checkout.url(pkg.uuid)}
-                            className="flex-1"
-                        >
-                            <Button variant="white" fullWidth>
-                                Bayar ulang
+                        <>
+                            <Button
+                                variant="white"
+                                fullWidth
+                                onClick={() => {
+                                    fetch(payments.status.url(pkg.uuid), {
+                                        headers: {
+                                            Accept: 'application/json',
+                                        },
+                                    })
+                                        .then((res) => res.json())
+                                        .then(
+                                            (data: {
+                                                payment_status?: string | null;
+                                            }) => {
+                                                if (
+                                                    data.payment_status &&
+                                                    data.payment_status !==
+                                                        'pending'
+                                                ) {
+                                                    router.reload({
+                                                        only: [
+                                                            'package',
+                                                            'payment',
+                                                        ],
+                                                    });
+                                                }
+                                            },
+                                        )
+                                        .catch(() => {});
+                                }}
+                            >
+                                Periksa status pembayaran
                             </Button>
-                        </Link>
+                            <Link
+                                href={payments.checkout.url(pkg.uuid)}
+                                className="flex-1"
+                            >
+                                <Button fullWidth>Selesaikan pembayaran</Button>
+                            </Link>
+                        </>
                     )}
                     {isSettled && (
                         <Link

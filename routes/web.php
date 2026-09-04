@@ -75,6 +75,10 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('permission:'.Permission::MenuPackages->value)
         ->name('payments.show');
 
+    Route::get('/packages/{package:uuid}/payment/status', [PaymentController::class, 'status'])
+        ->middleware('permission:'.Permission::MenuPackages->value)
+        ->name('payments.status');
+
     Route::get('/packages/{package:uuid}/receipt', [PaymentController::class, 'receipt'])
         ->middleware('permission:'.Permission::MenuPackages->value)
         ->name('payments.receipt');

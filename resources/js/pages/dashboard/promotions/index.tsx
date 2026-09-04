@@ -11,6 +11,8 @@ import {
 import { type ReactNode, useState } from 'react';
 import AppLayout from '@/layouts/AppLayout';
 import { Button } from '@/components/Button';
+import { DateTimePicker } from '@/components/DateTimePicker';
+import { TextInput } from '@/components/TextInput';
 
 type Promotion = {
     id: number;
@@ -38,22 +40,24 @@ type PromotionForm = {
     name: string;
     description: string;
     discount_type: string;
-    discount_value: number;
-    min_order_subtotal: number;
-    max_discount_amount: number | null;
+    discount_value: string;
+    min_order_subtotal: string;
+    max_discount_amount: string;
     starts_at: string;
     ends_at: string;
     is_active: boolean;
 };
 
-function splitDateTime(dt: string | null): { date: string; time: string } {
-    if (!dt) {
-        return { date: '', time: '' };
-    }
+function digitsOnly(raw: string): string {
+    return raw.replace(/[^0-9]/g, '');
+}
+
+function splitDateTime(dt: string | null): string {
+    if (!dt) return '';
     const d = new Date(dt);
     const date = d.toISOString().split('T')[0];
     const time = d.toTimeString().slice(0, 5);
-    return { date, time };
+    return date && time ? `${date}T${time}` : '';
 }
 
 export default function Promotions() {
@@ -72,9 +76,9 @@ export default function Promotions() {
             name: '',
             description: '',
             discount_type: 'percentage',
-            discount_value: 10,
-            min_order_subtotal: 0,
-            max_discount_amount: null,
+            discount_value: '10',
+            min_order_subtotal: '0',
+            max_discount_amount: '',
             starts_at: '',
             ends_at: '',
             is_active: true,
@@ -88,17 +92,17 @@ export default function Promotions() {
 
     const openEdit = (p: Promotion) => {
         setEditing(p);
-        const s = splitDateTime(p.starts_at);
-        const e = splitDateTime(p.ends_at);
         setData({
             name: p.name,
             description: p.description ?? '',
             discount_type: p.type,
-            discount_value: p.value,
-            min_order_subtotal: p.min_order_total,
-            max_discount_amount: p.max_discount_amount,
-            starts_at: s.date ? `${s.date}T${s.time}` : '',
-            ends_at: e.date ? `${e.date}T${e.time}` : '',
+            discount_value: String(p.value),
+            min_order_subtotal: String(p.min_order_total),
+            max_discount_amount: p.max_discount_amount
+                ? String(p.max_discount_amount)
+                : '',
+            starts_at: splitDateTime(p.starts_at),
+            ends_at: splitDateTime(p.ends_at),
             is_active: p.is_active,
         });
         setShowForm(true);
@@ -106,6 +110,12 @@ export default function Promotions() {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
+        setData((prev) => ({
+            ...prev,
+            discount_value: digitsOnly(prev.discount_value),
+            min_order_subtotal: digitsOnly(prev.min_order_subtotal),
+            max_discount_amount: digitsOnly(prev.max_discount_amount),
+        }));
         if (editing) {
             put(`/promotions/${editing.uuid}`, {
                 onSuccess: () => {
@@ -379,96 +389,61 @@ export default function Promotions() {
                             </button>
                         </div>
 
-                        <div>
-                            <label className="text-heading mb-1 block text-sm font-medium">
-                                Nilai Diskon
-                            </label>
-                            <input
-                                type="number"
-                                value={data.discount_value}
-                                onChange={(e) =>
+                        <TextInput
+                            id="discount_value"
+                            label="Nilai Diskon"
+                            inputMode="numeric"
+                            placeholder="cth: 10000"
+                            value={data.discount_value}
+                            onInput={(e) =>
+                                setData(
+                                    'discount_value',
+                                    digitsOnly(e.currentTarget.value),
+                                )
+                            }
+                            error={errors.discount_value}
+                        />
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <TextInput
+                                id="min_order_subtotal"
+                                label="Min. Order (Rp)"
+                                inputMode="numeric"
+                                placeholder="0"
+                                value={data.min_order_subtotal}
+                                onInput={(e) =>
                                     setData(
-                                        'discount_value',
-                                        Number(e.target.value),
+                                        'min_order_subtotal',
+                                        digitsOnly(e.currentTarget.value),
                                     )
                                 }
-                                min={1}
-                                className="bg-neutral-secondary-medium text-heading placeholder:text-body border-border-default-medium focus:border-brand focus:ring-brand w-full rounded-none border px-3 py-2.5 text-sm focus:ring-1 focus:outline-none"
                             />
-                            {errors.discount_value && (
-                                <p className="mt-1 text-xs text-red-600">
-                                    {errors.discount_value}
-                                </p>
-                            )}
+                            <TextInput
+                                id="max_discount_amount"
+                                label="Maks. Diskon (Rp)"
+                                inputMode="numeric"
+                                placeholder="Tanpa batas"
+                                value={data.max_discount_amount}
+                                onInput={(e) =>
+                                    setData(
+                                        'max_discount_amount',
+                                        digitsOnly(e.currentTarget.value),
+                                    )
+                                }
+                            />
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className="text-heading mb-1 block text-sm font-medium">
-                                    Min. Order (Rp)
-                                </label>
-                                <input
-                                    type="number"
-                                    value={data.min_order_subtotal}
-                                    onChange={(e) =>
-                                        setData(
-                                            'min_order_subtotal',
-                                            Number(e.target.value),
-                                        )
-                                    }
-                                    min={0}
-                                    className="bg-neutral-secondary-medium text-heading placeholder:text-body border-border-default-medium focus:border-brand focus:ring-brand w-full rounded-none border px-3 py-2.5 text-sm focus:ring-1 focus:outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-heading mb-1 block text-sm font-medium">
-                                    Maks. Diskon (Rp)
-                                </label>
-                                <input
-                                    type="number"
-                                    value={data.max_discount_amount ?? ''}
-                                    onChange={(e) =>
-                                        setData(
-                                            'max_discount_amount',
-                                            e.target.value
-                                                ? Number(e.target.value)
-                                                : null,
-                                        )
-                                    }
-                                    min={0}
-                                    placeholder="Tanpa batas"
-                                    className="bg-neutral-secondary-medium text-heading placeholder:text-body border-border-default-medium focus:border-brand focus:ring-brand w-full rounded-none border px-3 py-2.5 text-sm focus:ring-1 focus:outline-none"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className="text-heading mb-1 block text-sm font-medium">
-                                    Berlaku Dari
-                                </label>
-                                <input
-                                    type="datetime-local"
-                                    value={data.starts_at}
-                                    onChange={(e) =>
-                                        setData('starts_at', e.target.value)
-                                    }
-                                    className="bg-neutral-secondary-medium text-heading placeholder:text-body border-border-default-medium focus:border-brand focus:ring-brand w-full rounded-none border px-3 py-2.5 text-sm focus:ring-1 focus:outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-heading mb-1 block text-sm font-medium">
-                                    Berlaku Sampai
-                                </label>
-                                <input
-                                    type="datetime-local"
-                                    value={data.ends_at}
-                                    onChange={(e) =>
-                                        setData('ends_at', e.target.value)
-                                    }
-                                    className="bg-neutral-secondary-medium text-heading placeholder:text-body border-border-default-medium focus:border-brand focus:ring-brand w-full rounded-none border px-3 py-2.5 text-sm focus:ring-1 focus:outline-none"
-                                />
-                            </div>
+                            <DateTimePicker
+                                label="Berlaku Dari"
+                                value={data.starts_at}
+                                onChange={(v) => setData('starts_at', v)}
+                            />
+                            <DateTimePicker
+                                label="Berlaku Sampai"
+                                value={data.ends_at}
+                                onChange={(v) => setData('ends_at', v)}
+                            />
                         </div>
 
                         <label className="flex items-center gap-2">

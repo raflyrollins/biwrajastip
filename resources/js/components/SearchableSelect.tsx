@@ -1,6 +1,7 @@
 import { X, Check } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useViewportPosition } from '@/hooks/useViewportPosition';
 
 export type SearchableOption<T> = {
     value: string | number;
@@ -34,10 +35,11 @@ export function SearchableSelect<T>({
     hint,
     clearable = true,
 }: SearchableSelectProps<T>) {
-    const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState('');
     const [selectedIndex, setSelectedIndex] = useState(-1);
-    const wrapperRef = useRef<HTMLDivElement>(null);
+
+    const { triggerRef, dropdownRef, open, setOpen, position } =
+        useViewportPosition(4);
 
     const selected = useMemo(
         () => options.find((o) => String(o.value) === String(value)),
@@ -50,40 +52,22 @@ export function SearchableSelect<T>({
         return options.filter((o) => o.label.toLowerCase().includes(q));
     }, [options, query]);
 
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (
-                wrapperRef.current &&
-                !wrapperRef.current.contains(event.target as Node)
-            ) {
-                setIsOpen(false);
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside);
-        return () =>
-            document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    useEffect(() => {
-        setSelectedIndex(-1);
-    }, [query]);
-
     const handleSelect = (option: SearchableOption<T>) => {
         onChange(String(option.value));
         onSelect?.(option);
         setQuery('');
-        setIsOpen(false);
+        setOpen(false);
     };
 
     const handleClear = () => {
         onChange('');
         onSelect?.(undefined);
         setQuery('');
-        setIsOpen(false);
+        setOpen(false);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (!isOpen) return;
+        if (!open) return;
         switch (e.key) {
             case 'ArrowDown':
                 e.preventDefault();
@@ -101,16 +85,16 @@ export function SearchableSelect<T>({
                     handleSelect(filtered[selectedIndex]);
                 }
                 break;
-            case 'Escape':
-                setIsOpen(false);
-                break;
         }
     };
 
-    const inputValue = isOpen ? query : (selected?.label ?? '');
+    const inputValue = open ? query : (selected?.label ?? '');
 
     return (
-        <div className="relative grid gap-1.5" ref={wrapperRef}>
+        <div
+            className="grid gap-1.5"
+            ref={triggerRef as React.Ref<HTMLDivElement>}
+        >
             <label htmlFor={id} className="text-heading text-sm font-medium">
                 {label}
             </label>
@@ -119,15 +103,17 @@ export function SearchableSelect<T>({
                     id={id}
                     type="text"
                     role="combobox"
-                    aria-expanded={isOpen}
+                    aria-expanded={open}
                     aria-autocomplete="list"
                     aria-controls={`${id}-list`}
                     value={inputValue}
                     onChange={(e) => {
                         setQuery(e.target.value);
-                        setIsOpen(true);
+                        if (!open) setOpen(true);
                     }}
-                    onFocus={() => setIsOpen(true)}
+                    onFocus={() => {
+                        if (!open) setOpen(true);
+                    }}
                     onKeyDown={handleKeyDown}
                     autoComplete="off"
                     placeholder={placeholder}
@@ -145,11 +131,13 @@ export function SearchableSelect<T>({
                 ) : null}
             </div>
 
-            {isOpen ? (
+            {open && position && (
                 <ul
                     id={`${id}-list`}
+                    ref={dropdownRef as React.Ref<HTMLUListElement>}
                     role="listbox"
-                    className="border-border-default bg-neutral-primary absolute z-50 mt-[54px] max-h-60 w-full overflow-auto border shadow-lg"
+                    style={position}
+                    className="border-border-default bg-neutral-primary max-h-60 overflow-auto border shadow-lg"
                 >
                     {filtered.length === 0 ? (
                         <li className="text-body-subtle px-4 py-3 text-center text-sm">
@@ -199,7 +187,7 @@ export function SearchableSelect<T>({
                         })
                     )}
                 </ul>
-            ) : null}
+            )}
 
             {hint ? <p className="text-body-subtle text-xs">{hint}</p> : null}
         </div>
